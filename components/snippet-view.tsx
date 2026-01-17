@@ -23,20 +23,69 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="flex-1 container mx-auto px-4 pt-6 md:pt-8 pb-8">
+    <div className="min-h-screen w-full relative">
+      {/* Dashed Top Fade Grid */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: `
+        linear-gradient(to right, #e7e5e4 1px, transparent 1px),
+        linear-gradient(to bottom, #e7e5e4 1px, transparent 1px)
+      `,
+          backgroundSize: "20px 20px",
+          backgroundPosition: "0 0, 0 0",
+          maskImage: `
+        repeating-linear-gradient(
+              to right,
+              black 0px,
+              black 3px,
+              transparent 3px,
+              transparent 8px
+            ),
+            repeating-linear-gradient(
+              to bottom,
+              black 0px,
+              black 3px,
+              transparent 3px,
+              transparent 8px
+            ),
+            radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%)
+      `,
+          WebkitMaskImage: `
+ repeating-linear-gradient(
+              to right,
+              black 0px,
+              black 3px,
+              transparent 3px,
+              transparent 8px
+            ),
+            repeating-linear-gradient(
+              to bottom,
+              black 0px,
+              black 3px,
+              transparent 3px,
+              transparent 8px
+            ),
+            radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%)
+      `,
+          maskComposite: "intersect",
+          WebkitMaskComposite: "source-in",
+        }}
+      />
+      <div className="flex flex-col min-h-screen relative z-10">
+        <div className="flex-1 container mx-auto px-4 pt-6 md:pt-8 pb-8">
         <div className="max-w-2xl mx-auto">
           <nav className="mb-8">
             <a
               href="/"
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-muted-foreground transition-colors"
             >
               <Plus className="h-4 w-4" />
               <span>Create yours</span>
             </a>
           </nav>
 
-          {/* Path del archivo */}
+          {/* File path */}
           <div className="mb-3 text-center">
             <code className="font-mono text-sm text-muted-foreground">{snippet.target}</code>
           </div>
@@ -44,7 +93,7 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
           {/* Code Preview */}
           <div className="mb-6">{codePreview}</div>
 
-          {/* NPX Command - El CTA principal */}
+          {/* NPX Command - Main CTA */}
           <div>
             <button
               onClick={handleCopyCommand}
@@ -80,6 +129,7 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
           </p>
         </div>
       </footer>
+      </div>
     </div>
   )
 }
