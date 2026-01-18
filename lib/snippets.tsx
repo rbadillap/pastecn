@@ -14,9 +14,9 @@ export interface Snippet {
 const snippets: Record<string, Snippet> = {
   a7x9k2m: {
     id: "a7x9k2m",
-    name: "magic-card.tsx",
+    name: "button.tsx",
     type: "component",
-    target: "components/ui/magic-card.tsx",
+    target: "components/ui/button.tsx",
     content: `"use client"
 
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion"

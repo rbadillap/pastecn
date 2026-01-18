@@ -9,7 +9,7 @@ type RegistryType = "file" | "component" | "hook" | "lib"
 
 const registryTypes: { value: RegistryType; label: string; prefix: string; placeholder: string }[] = [
   { value: "file", label: "File", prefix: "~/", placeholder: "AGENTS.md" },
-  { value: "component", label: "Component", prefix: "components/ui/", placeholder: "magic-card.tsx" },
+  { value: "component", label: "Component", prefix: "components/ui/", placeholder: "button.tsx" },
   { value: "hook", label: "Hook", prefix: "hooks/", placeholder: "use-copy-to-clipboard.ts" },
   { value: "lib", label: "Lib", prefix: "lib/", placeholder: "fetcher.ts" },
 ]
