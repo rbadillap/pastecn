@@ -46,7 +46,7 @@ export default function BlogPostRegistryUrl() {
               <div>
                 <h3 className="font-medium mb-2">1. Paste your code</h3>
                 <p className="text-muted-foreground text-sm">
-                  Open pastecn and paste your component, hook, or utility directly into the editor
+                  Open pastecn and paste your component, hook, or utility directly into the editor.
                 </p>
               </div>
 
@@ -54,14 +54,14 @@ export default function BlogPostRegistryUrl() {
                 <h3 className="font-medium mb-2">2. Set the type</h3>
                 <p className="text-muted-foreground text-sm">
                   Choose whether it&apos;s a component, hook, lib, or generic file. 
-                  This determines where it gets installed in the user&apos;s project
+                  This determines where it gets installed in the user&apos;s project.
                 </p>
               </div>
 
               <div>
                 <h3 className="font-medium mb-2">3. Click Create</h3>
                 <p className="text-muted-foreground text-sm">
-                  You get a URL. That&apos;s it. The URL is a valid shadcn registry endpoint
+                  You get a URL. That&apos;s it. The URL is a valid shadcn registry endpoint.
                 </p>
               </div>
             </div>
