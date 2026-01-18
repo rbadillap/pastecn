@@ -82,7 +82,7 @@ export default function BlogPostRegistryUrl() {
             </p>
           </section>
 
-          <section className="mb-10">
+          <section className="mb-10" id="when-to-use-this">
             <h2 className="text-xl font-medium mb-4">When to use this</h2>
             <ul className="space-y-2 text-muted-foreground">
               <li className="flex gap-2">
