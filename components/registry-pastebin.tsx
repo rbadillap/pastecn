@@ -43,14 +43,14 @@ export function RegistryPastebin() {
           </div>
 
           {/* Editor Container - Unified */}
-          <div className="flex-1 flex flex-col border border-border rounded-lg overflow-hidden">
+          <div className="flex-1 flex flex-col border border-border rounded-lg overflow-hidden bg-muted/30">
             {/* Textarea */}
             <div className="relative flex-1 min-h-[300px] md:min-h-[400px]">
               <textarea
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder={`// Paste your code here...`}
-                className="w-full h-full min-h-[300px] md:min-h-[400px] bg-muted/30 p-4 font-mono text-base md:text-sm resize-none focus:outline-none placeholder:text-muted-foreground/50 border-0"
+                className="w-full h-full min-h-[300px] md:min-h-[400px] bg-transparent p-4 font-mono text-base md:text-sm resize-none focus:outline-none placeholder:text-muted-foreground/50 border-0"
                 spellCheck={false}
                 autoFocus
               />
