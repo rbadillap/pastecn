@@ -211,19 +211,35 @@ export function RegistryPastebin() {
 
       {/* Footer */}
       <footer className="border-t border-border py-4">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-xs text-muted-foreground">
-            Compatible with{" "}
-            <a
-              href="https://ui.shadcn.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-foreground hover:underline"
-            >
-              shadcn/ui
-            </a>{" "}
-            registry format
-          </p>
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col items-center gap-3 md:flex-row md:justify-between">
+            <p className="text-xs text-muted-foreground text-center md:text-left">
+              Compatible with{" "}
+              <a
+                href="https://ui.shadcn.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground hover:underline"
+              >
+                shadcn/ui
+              </a>{" "}
+              registry format
+            </p>
+            <div className="flex items-center gap-4 text-xs">
+              <a
+                href="/how-to-create-shadcn-registry-url#when-to-use-this"
+                className="text-foreground hover:underline"
+              >
+                Use Cases
+              </a>
+              <a
+                href="/how-to-create-shadcn-registry-url"
+                className="text-foreground hover:underline"
+              >
+                Blog
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
