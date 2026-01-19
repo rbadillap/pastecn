@@ -6,6 +6,7 @@ import { ChevronDown, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group"
+import { Kbd } from "./ui/kbd"
 
 type RegistryType = "file" | "component" | "hook" | "lib"
 
@@ -104,7 +105,7 @@ export function RegistryPastebin() {
       <div className="flex-1 container mx-auto px-4 pt-12 md:pt-20 pb-8 flex flex-col">
         <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full">
           <div className="text-center mb-8">
-            <h1 className="text-2xl md:text-3xl font-semibold text-foreground mb-2 text-balance tracking-tight">
+            <h1 className="text-2xl md:text-6xl font-semibold mb-2 text-balance  font-brand text-muted-foreground">
               Paste. Create. Share.
             </h1>
             <p className="text-muted-foreground text-sm md:text-base">Turn any file into a registry URL</p>
@@ -179,9 +180,10 @@ export function RegistryPastebin() {
                 <Button 
                   onClick={handleCreate} 
                   disabled={!code.trim()} 
-                  className="w-full md:w-auto md:shrink-0 md:px-4"
+                  className="w-full md:w-auto md:shrink-0 md:px-4 group hover:bg-primary"
                 >
                   Create
+                  <Kbd className="bg-primary text-primary-foreground group-hover:bg-primary/90">⏎</Kbd>
                 </Button>
               </div>
             </div>
