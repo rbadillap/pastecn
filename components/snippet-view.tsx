@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { Check, Copy, Terminal, Plus } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Check, Copy, Terminal, Plus, Link as LinkIcon } from "lucide-react"
 import type { Snippet } from "@/lib/snippets"
 
 interface SnippetViewProps {
@@ -12,6 +12,15 @@ interface SnippetViewProps {
 
 export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
   const [copiedCommand, setCopiedCommand] = useState(false)
+  const [copiedUrl, setCopiedUrl] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState("")
+
+  useEffect(() => {
+    // Get the current URL (preview page)
+    if (typeof window !== "undefined") {
+      setPreviewUrl(window.location.href)
+    }
+  }, [])
 
   const registryUrl = `https://pastecn.vercel.app/r/${snippet.id}`
   const npxCommand = `npx shadcn@latest add ${registryUrl}.json`
@@ -20,6 +29,14 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
     await navigator.clipboard.writeText(npxCommand)
     setCopiedCommand(true)
     setTimeout(() => setCopiedCommand(false), 3000)
+  }
+
+  const handleCopyUrl = async () => {
+    if (previewUrl) {
+      await navigator.clipboard.writeText(previewUrl)
+      setCopiedUrl(true)
+      setTimeout(() => setCopiedUrl(false), 3000)
+    }
   }
 
   return (
@@ -44,8 +61,29 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
           {/* Code Preview */}
           <div className="mb-6">{codePreview}</div>
 
-          {/* NPX Command - El CTA principal */}
+          {/* Preview URL */}
+          {previewUrl && (
+            <div className="mb-4">
+              <label className="block text-xs text-muted-foreground mb-2">Preview URL</label>
+              <button
+                onClick={handleCopyUrl}
+                className="w-full flex items-center gap-3 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
+              >
+                <LinkIcon className="h-4 w-4 shrink-0 opacity-70" />
+                <code className="flex-1 font-mono text-sm truncate text-left">{previewUrl}</code>
+                {copiedUrl ? (
+                  <Check className="h-4 w-4 shrink-0 text-green-400" />
+                ) : (
+                  <Copy className="h-4 w-4 shrink-0 opacity-70" />
+                )}
+              </button>
+              {copiedUrl && <p className="text-xs text-muted-foreground mt-2 text-center">URL copied!</p>}
+            </div>
+          )}
+
+          {/* NPX Command */}
           <div>
+            <label className="block text-xs text-muted-foreground mb-2">Install Command</label>
             <button
               onClick={handleCopyCommand}
               className="w-full flex items-center gap-3 bg-foreground text-background border border-border rounded-lg p-4 hover:bg-foreground/90 transition-colors cursor-pointer"
