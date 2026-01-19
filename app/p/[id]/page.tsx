@@ -10,6 +10,10 @@ interface SnippetPageProps {
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pastecn.vercel.app'
 
+// Cache this page indefinitely since snippets are immutable
+export const revalidate = false
+export const dynamic = 'force-static'
+
 export async function generateMetadata({ params }: SnippetPageProps): Promise<Metadata> {
   const { id } = await params
   const snippet = await getSnippet(id)

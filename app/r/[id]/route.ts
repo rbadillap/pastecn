@@ -5,6 +5,10 @@ interface RouteContext {
   params: Promise<{ id: string }>
 }
 
+// Mark as static since snippets are immutable
+export const dynamic = 'force-static'
+export const revalidate = false
+
 export async function GET(
   request: Request,
   { params }: RouteContext
