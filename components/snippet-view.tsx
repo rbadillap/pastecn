@@ -14,7 +14,7 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
   const [copiedCommand, setCopiedCommand] = useState(false)
 
   const registryUrl = `https://pastecn.vercel.app/r/${snippet.id}`
-  const npxCommand = `npx shadcn@latest add ${registryUrl}`
+  const npxCommand = `npx shadcn@latest add ${registryUrl}.json`
 
   const handleCopyCommand = async () => {
     await navigator.clipboard.writeText(npxCommand)
