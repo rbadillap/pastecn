@@ -2,6 +2,8 @@
 
 Create shareable shadcn/ui registry URLs. Paste your code, get a registry URL compatible with shadcn CLI.
 
+![hero](app/opengraph-image.jpg)
+
 **Live:** [pastecn.vercel.app](https://pastecn.vercel.app)
 
 ## Overview
