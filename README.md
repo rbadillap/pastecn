@@ -1,30 +1,30 @@
 # pastecn
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+Create shareable shadcn/ui registry URLs. Paste your code, get a registry URL compatible with shadcn CLI.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/rbadillap-labs/v0-pastebin-registry-url)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/estb9lzyx2b)
+**Live:** [pastecn.vercel.app](https://pastecn.vercel.app)
 
 ## Overview
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+**pastecn** converts code snippets into shadcn registry-compatible JSON endpoints. You paste code, specify the type (component, hook, lib, or file), and get a URL that works directly with `shadcn CLI`.
 
-## Deployment
+## pastebin + shadcn = pastecn
 
-Your project is live at:
+1. Paste your code in the editor
+2. Select the type: component, hook, lib, or file
+3. Set the target filename/path
+4. Click Create to generate the registry URL
 
-**[https://vercel.com/rbadillap-labs/v0-pastebin-registry-url](https://vercel.com/rbadillap-labs/v0-pastebin-registry-url)**
+### Installing a snippet
 
-## Build your app
+```sh
+npx shadcn@latest add https://pastecn.vercel.app/r/{id}
+```
 
-Continue building your app on:
+## Contributing
 
-**[https://v0.app/chat/estb9lzyx2b](https://v0.app/chat/estb9lzyx2b)**
+Contributions welcome. Open an issue,  submit a pull requests, share your idea!
 
-## How It Works
+## License
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+Licensed under the [MIT License](LICENSE.md)
