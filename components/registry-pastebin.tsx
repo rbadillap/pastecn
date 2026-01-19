@@ -5,6 +5,7 @@ import { ChevronDown, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group"
+import { Kbd } from "./ui/kbd"
 
 type RegistryType = "file" | "component" | "hook" | "lib"
 
@@ -178,9 +179,10 @@ export function RegistryPastebin() {
                 <Button 
                   onClick={handleCreate} 
                   disabled={!code.trim()} 
-                  className="w-full md:w-auto md:shrink-0 md:px-4"
+                  className="w-full md:w-auto md:shrink-0 md:px-4 group hover:bg-primary"
                 >
                   Create
+                  <Kbd className="bg-primary text-primary-foreground group-hover:bg-primary/90">⏎</Kbd>
                 </Button>
               </div>
             </div>
