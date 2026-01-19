@@ -1,12 +1,38 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
+import type { Metadata } from "next"
 
 export const cache = false
 
-export const metadata = {
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pastecn.vercel.app'
+
+export const metadata: Metadata = {
   title: "How to Create a shadcn Registry URL in 5 Seconds — pastecn",
   description: "Skip the repo setup. Paste your component, get a registry URL, share it instantly.",
+  openGraph: {
+    title: "How to Create a shadcn Registry URL in 5 Seconds — pastecn",
+    description: "Skip the repo setup. Paste your component, get a registry URL, share it instantly.",
+    url: `${siteUrl}/blog/how-to-create-shadcn-registry-url`,
+    type: "article",
+    images: [
+      {
+        url: "/opengraph-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "How to Create a shadcn Registry URL in 5 Seconds",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How to Create a shadcn Registry URL in 5 Seconds — pastecn",
+    description: "Skip the repo setup. Paste your component, get a registry URL, share it instantly.",
+    images: ["/opengraph-image.jpg"],
+  },
+  alternates: {
+    canonical: `${siteUrl}/blog/how-to-create-shadcn-registry-url`,
+  },
 }
 
 export default function BlogPostRegistryUrl() {

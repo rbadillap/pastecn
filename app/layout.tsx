@@ -18,10 +18,57 @@ const brandFont = Instrument_Serif({
   weight: "400",
   display: "swap",
 })
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pastecn.vercel.app'
+
 export const metadata: Metadata = {
-  title: "shadcn/ui Registry",
-  description: "Create shareable registry URLs for your shadcn/ui components",
-  generator: "v0.app",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "pastecn — Create shareable shadcn/ui registry URLs",
+    template: "%s — pastecn",
+  },
+  description: "Create shareable registry URLs for your shadcn/ui components. Paste your code and get a shadcn-compatible registry URL instantly.",
+  keywords: ["shadcn", "shadcn/ui", "registry", "component sharing", "react components", "next.js", "ui components"],
+  authors: [{ name: "Ronny Badilla" }],
+  creator: "Ronny Badilla",
+  publisher: "pastecn",
+  generator: "Next.js",
+  applicationName: "pastecn",
+  referrer: "origin-when-cross-origin",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: "pastecn",
+    title: "pastecn — Create shareable shadcn/ui registry URLs",
+    description: "Create shareable registry URLs for your shadcn/ui components. Paste your code and get a shadcn-compatible registry URL instantly.",
+    images: [
+      {
+        url: "/opengraph-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "pastecn — Create shareable shadcn/ui registry URLs",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "pastecn — Create shareable shadcn/ui registry URLs",
+    description: "Create shareable registry URLs for your shadcn/ui components. Paste your code and get a shadcn-compatible registry URL instantly.",
+    images: ["/opengraph-image.jpg"],
+    creator: "@pastecn",
+  },
   icons: {
     icon: [
       {
@@ -45,6 +92,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
 }
 
 export default function RootLayout({
