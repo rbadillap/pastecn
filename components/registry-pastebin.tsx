@@ -105,7 +105,7 @@ export function RegistryPastebin() {
       <div className="flex-1 container mx-auto px-4 pt-12 md:pt-20 pb-8 flex flex-col">
         <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full">
           <div className="text-center mb-8">
-            <h1 className="text-2xl md:text-6xl font-semibold mb-2 text-balance  font-brand text-muted-foreground">
+            <h1 className="text-2xl md:text-6xl font-semibold mb-2 text-balance  font-brand text-primary/80">
               Paste. Create. Share.
             </h1>
             <p className="text-muted-foreground text-sm md:text-base">Turn any file into a registry URL</p>
