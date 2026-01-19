@@ -13,7 +13,7 @@ interface SnippetViewProps {
 export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
   const [copiedCommand, setCopiedCommand] = useState(false)
 
-  const registryUrl = `https://r.shadcn.com/${snippet.id}`
+  const registryUrl = `https://pastecn.vercel.app/r/${snippet.id}`
   const npxCommand = `npx shadcn@latest add ${registryUrl}`
 
   const handleCopyCommand = async () => {

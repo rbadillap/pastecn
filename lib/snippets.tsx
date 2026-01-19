@@ -1,3 +1,5 @@
+import { head, BlobNotFoundError } from '@vercel/blob'
+
 // Types for registry snippets
 export interface Snippet {
   id: string
@@ -10,73 +12,69 @@ export interface Snippet {
   }
 }
 
-// Hardcoded data - will be replaced with DB query later
-const snippets: Record<string, Snippet> = {
-  a7x9k2m: {
-    id: "a7x9k2m",
-    name: "magic-card.tsx",
-    type: "component",
-    target: "components/ui/magic-card.tsx",
-    content: `"use client"
-
-import { motion, useMotionTemplate, useMotionValue } from "framer-motion"
-import type { MouseEvent } from "react"
-
-import { cn } from "@/lib/utils"
-
-interface MagicCardProps {
-  children: React.ReactNode
-  className?: string
-  gradientSize?: number
-  gradientColor?: string
-}
-
-export function MagicCard({
-  children,
-  className,
-  gradientSize = 200,
-  gradientColor = "#262626",
-}: MagicCardProps) {
-  const mouseX = useMotionValue(0)
-  const mouseY = useMotionValue(0)
-
-  function handleMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
-    const { left, top } = currentTarget.getBoundingClientRect()
-    mouseX.set(clientX - left)
-    mouseY.set(clientY - top)
-  }
-
-  return (
-    <div
-      onMouseMove={handleMouseMove}
-      className={cn(
-        "group relative rounded-xl border bg-background",
-        className
-      )}
-    >
-      <motion.div
-        className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover:opacity-100"
-        style={{
-          background: useMotionTemplate\`
-            radial-gradient(
-              \${gradientSize}px circle at \${mouseX}px \${mouseY}px,
-              \${gradientColor},
-              transparent 80%
-            )
-          \`,
-        }}
-      />
-      {children}
-    </div>
-  )
-}`,
-    meta: {
-      language: "tsx",
-    },
-  },
-}
-
 export async function getSnippet(id: string): Promise<Snippet | null> {
-  // Simulating async DB call - replace with real query later
-  return snippets[id] || null
+  try {
+    // Verify blob exists and get metadata (including URL)
+    const metadata = await head(`snippets/${id}.json`)
+    
+    // Fetch blob content with aggressive cache (snippets are immutable)
+    const response = await fetch(metadata.url, {
+      cache: 'force-cache', // Cache in Next.js Data Cache
+      next: {
+        revalidate: false, // Never revalidate (immutable)
+        tags: [`snippet-${id}`], // Tag for manual invalidation if needed
+      },
+    })
+    
+    if (!response.ok) {
+      return null
+    }
+    
+    const json = await response.json()
+    
+    // Map Registry JSON to Snippet
+    const file = json.files[0]
+    const target = file.target || file.path
+    const language = inferLanguage(target)
+    const type = mapRegistryType(json.type)
+    
+    return {
+      id,
+      name: json.name,
+      type,
+      target,
+      content: file.content,
+      meta: {
+        language,
+      },
+    }
+  } catch (error) {
+    if (error instanceof BlobNotFoundError) {
+      return null
+    }
+    console.error('Error fetching snippet:', error)
+    return null
+  }
+}
+
+function mapRegistryType(registryType: string): Snippet['type'] {
+  const mapping: Record<string, Snippet['type']> = {
+    'registry:file': 'file',
+    'registry:component': 'component',
+    'registry:hook': 'hook',
+    'registry:lib': 'lib',
+  }
+  return mapping[registryType] || 'file'
+}
+
+function inferLanguage(path: string): string {
+  const ext = path.split('.').pop()?.toLowerCase() || ''
+  const mapping: Record<string, string> = {
+    'tsx': 'tsx',
+    'ts': 'ts',
+    'jsx': 'jsx',
+    'js': 'js',
+    'md': 'markdown',
+  }
+  return mapping[ext] || 'text'
 }

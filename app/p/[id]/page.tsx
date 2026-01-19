@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation"
+import { redirect } from "next/navigation"
 import { getSnippet } from "@/lib/snippets"
 import { CodePreview } from "@/components/code-preview"
 import { SnippetView } from "@/components/snippet-view"
@@ -12,7 +12,7 @@ export default async function SnippetPage({ params }: SnippetPageProps) {
   const snippet = await getSnippet(id)
 
   if (!snippet) {
-    notFound()
+    redirect('/')
   }
 
   const codePreview = <CodePreview code={snippet.content} language={snippet.meta.language} />
