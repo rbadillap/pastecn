@@ -26,12 +26,12 @@ export default function BlogPostRegistryUrl() {
         <div className="prose prose-neutral max-w-none">
           <section className="mb-10">
             <p className="text-muted-foreground leading-relaxed mb-4">
-              You just built a component. Maybe it&apos;s a magic card with a hover effect, 
+              You just built a component. Maybe it&apos;s a magic card with a hover effect,
               a custom hook for clipboard operations, or a utility function your team keeps copying between projects.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              You want to share it. The shadcn way would be to create a registry — but that means 
-              setting up a repo, writing the registry JSON schema, hosting it, and maintaining it. 
+              You want to share it. The shadcn way would be to create a registry — but that means
+              setting up a repo, writing the registry JSON schema, hosting it, and maintaining it.
               For one component. That&apos;s friction you don&apos;t need.
             </p>
           </section>
@@ -53,7 +53,7 @@ export default function BlogPostRegistryUrl() {
               <div>
                 <h3 className="font-medium mb-2">2. Set the type</h3>
                 <p className="text-muted-foreground text-sm">
-                  Choose whether it&apos;s a component, hook, lib, or generic file. 
+                  Choose whether it&apos;s a component, hook, lib, or generic file.
                   This determines where it gets installed in the user&apos;s project.
                 </p>
               </div>
@@ -72,17 +72,17 @@ export default function BlogPostRegistryUrl() {
             <p className="text-muted-foreground leading-relaxed mb-4">
               Anyone with the URL can install your component with one command:
             </p>
-            <div className="bg-muted rounded-lg p-4 font-mono text-sm mb-4">
+            <div className="bg-muted-foreground/10 border border-primary/10 rounded-lg p-4 font-mono text-sm mb-4">
               npx shadcn@latest add https://pastecn.com/r/abc123
             </div>
             <p className="text-muted-foreground leading-relaxed">
-              The CLI handles everything — downloading the code, placing it in the right directory, 
-              and installing any dependencies. The person receiving your component doesn&apos;t need to 
+              The CLI handles everything — downloading the code, placing it in the right directory,
+              and installing any dependencies. The person receiving your component doesn&apos;t need to
               know anything about registries.
             </p>
           </section>
 
-          <section className="mb-10" id="when-to-use-this">
+          <section className="mb-10">
             <h2 className="text-xl font-medium mb-4">When to use this</h2>
             <ul className="space-y-2 text-muted-foreground">
               <li className="flex gap-2">
@@ -107,9 +107,9 @@ export default function BlogPostRegistryUrl() {
           <section className="mb-12">
             <h2 className="text-xl font-medium mb-4">What you&apos;re not getting</h2>
             <p className="text-muted-foreground leading-relaxed">
-              This isn&apos;t a package manager. There&apos;s no versioning, no updates, no dependency resolution. 
-              Each paste is immutable — a snapshot of code at a moment in time. 
-              If you need those features, set up a proper registry. 
+              This isn&apos;t a package manager. There&apos;s no versioning, no updates, no dependency resolution.
+              Each paste is immutable — a snapshot of code at a moment in time.
+              If you need those features, set up a proper registry.
               If you just need to share code fast, paste and go.
             </p>
           </section>
