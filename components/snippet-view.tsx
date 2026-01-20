@@ -1,8 +1,9 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Check, Copy, Terminal, Plus, Link as LinkIcon } from "lucide-react"
+import { track } from "@vercel/analytics/react"
 import type { Snippet } from "@/lib/snippets"
 
 interface SnippetViewProps {
@@ -18,16 +19,34 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
   const previewUrl = `https://pastecn.vercel.app/p/${snippet.id}`
   const npxCommand = `npx shadcn@latest add ${registryUrl}.json`
 
+  // Track snippet view on mount
+  useEffect(() => {
+    track('snippet_viewed', {
+      snippet_id: snippet.id,
+      snippet_type: snippet.type,
+      language: snippet.meta.language,
+      content_length: snippet.content.length,
+    })
+  }, [snippet.id, snippet.type, snippet.meta.language, snippet.content.length])
+
   const handleCopyCommand = async () => {
     await navigator.clipboard.writeText(npxCommand)
     setCopiedCommand(true)
     setTimeout(() => setCopiedCommand(false), 3000)
+    track('command_copied', {
+      snippet_id: snippet.id,
+      snippet_type: snippet.type,
+    })
   }
 
   const handleCopyUrl = async () => {
     await navigator.clipboard.writeText(previewUrl)
     setCopiedUrl(true)
     setTimeout(() => setCopiedUrl(false), 3000)
+    track('preview_url_copied', {
+      snippet_id: snippet.id,
+      snippet_type: snippet.type,
+    })
   }
 
   return (

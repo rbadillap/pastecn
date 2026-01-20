@@ -1,6 +1,7 @@
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
 import { head, BlobNotFoundError } from '@vercel/blob'
 import { NextResponse } from 'next/server'
+import { track } from '@vercel/analytics/server'
 import { validateSnippetId } from '@/lib/validation'
 
 export async function POST(request: Request) {
@@ -46,6 +47,10 @@ export async function POST(request: Request) {
     return NextResponse.json(jsonResponse)
   } catch (error) {
     if (error instanceof Error && error.message === 'ID_COLLISION') {
+      track('upload_error', {
+        error_type: 'id_collision',
+        status_code: 409,
+      })
       return NextResponse.json(
         { error: 'ID collision - blob already exists' },
         { status: 409 }
@@ -53,6 +58,10 @@ export async function POST(request: Request) {
     }
     
     if (error instanceof Error && error.message === 'INVALID_ID') {
+      track('upload_error', {
+        error_type: 'invalid_id',
+        status_code: 400,
+      })
       return NextResponse.json(
         { error: 'Invalid snippet ID format' },
         { status: 400 }
@@ -64,14 +73,26 @@ export async function POST(request: Request) {
       const message = error.message.toLowerCase()
       
       if (message.includes('size') || message.includes('too large')) {
+        track('upload_error', {
+          error_type: 'size_limit',
+          status_code: 413,
+        })
         return NextResponse.json({}, { status: 413 })
       }
       
       if (message.includes('content type') || message.includes('type')) {
+        track('upload_error', {
+          error_type: 'content_type',
+          status_code: 415,
+        })
         return NextResponse.json({}, { status: 415 })
       }
       
       if (message.includes('permission') || message.includes('forbidden')) {
+        track('upload_error', {
+          error_type: 'permission',
+          status_code: 403,
+        })
         return NextResponse.json({}, { status: 403 })
       }
     }
@@ -84,6 +105,10 @@ export async function POST(request: Request) {
     // - Return 429 Too Many Requests if exceeded
     // - Use appropriate time window (e.g., 10 requests per minute)
     
+    track('upload_error', {
+      error_type: 'unknown',
+      status_code: 400,
+    })
     return NextResponse.json(
       { error: (error as Error).message },
       { status: 400 }
