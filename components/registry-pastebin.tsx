@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ChevronDown, Loader2 } from "lucide-react"
 import { upload } from "@vercel/blob/client"
+import { nanoid } from "nanoid"
+import { validatePath } from "@/lib/validation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group"
@@ -26,7 +28,9 @@ const registryTypes: {
 ]
 
 function generateId(): string {
-  return Math.random().toString(36).substring(2, 9)
+  // Generate short secure ID using nanoid (8 characters)
+  // nanoid uses secure crypto by default
+  return nanoid(8)
 }
 
 function getNameFromPath(path: string): string {
@@ -54,12 +58,40 @@ export function RegistryPastebin() {
   const [typeMenuOpen, setTypeMenuOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isPathInvalid, setIsPathInvalid] = useState(false)
   const typeMenuRef = useRef<HTMLDivElement>(null)
 
   const currentType = registryTypes.find((t) => t.value === registryType)!
 
+  const validatePaths = (): boolean => {
+    // If fileName is empty, we'll use a default when creating, so validation passes
+    if (!fileName.trim()) {
+      setIsPathInvalid(false)
+      return true
+    }
+    
+    const finalFileName = fileName.trim()
+    const fullPath = registryType === "file" 
+      ? finalFileName 
+      : `${currentType.prefix}${finalFileName}`
+    const target = registryType === "file" ? `~/${finalFileName}` : null
+    
+    const isValid = validatePath(finalFileName) && 
+                    validatePath(fullPath) && 
+                    (target ? validatePath(target) : true)
+    
+    setIsPathInvalid(!isValid)
+    return isValid
+  }
+
   const handleCreate = async () => {
     if (!code.trim()) return
+    
+    // Validate paths before proceeding
+    if (!validatePaths()) {
+      setIsUploading(false)
+      return
+    }
     
     setIsUploading(true)
     setError(null)
@@ -207,9 +239,31 @@ export function RegistryPastebin() {
                   </InputGroupAddon>
                   <InputGroupInput
                     value={fileName}
-                    onChange={(e) => setFileName(e.target.value)}
+                    onChange={(e) => {
+                      const newValue = e.target.value
+                      setFileName(newValue)
+                      // Validar en tiempo real mientras escribe
+                      if (newValue.trim()) {
+                        // Validar inmediatamente
+                        const finalFileName = newValue.trim()
+                        const fullPath = registryType === "file" 
+                          ? finalFileName 
+                          : `${currentType.prefix}${finalFileName}`
+                        const target = registryType === "file" ? `~/${finalFileName}` : null
+                        
+                        const isValid = validatePath(finalFileName) && 
+                                        validatePath(fullPath) && 
+                                        (target ? validatePath(target) : true)
+                        
+                        setIsPathInvalid(!isValid)
+                      } else {
+                        // Si está vacío, resetear el estado
+                        setIsPathInvalid(false)
+                      }
+                    }}
                     placeholder={currentType.placeholder}
-                    className="h-8 font-mono text-sm border-border min-w-0 rounded-r-none"
+                    className="h-8 font-mono text-sm min-w-0"
+                    aria-invalid={isPathInvalid}
                     disabled={isUploading}
                   />
                 </InputGroup>
@@ -218,7 +272,7 @@ export function RegistryPastebin() {
               {/* Row 2 on mobile, inline on desktop: Create Button */}
               <Button 
                 onClick={handleCreate} 
-                disabled={!code.trim() || isUploading} 
+                disabled={!code.trim() || isUploading || isPathInvalid}
                 className="w-full md:w-auto md:shrink-0 md:px-4 group hover:bg-primary"
               >
                 {isUploading ? (

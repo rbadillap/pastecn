@@ -1,4 +1,5 @@
 import { getSnippet } from "@/lib/snippets"
+import { validateSnippetId } from "@/lib/validation"
 import { NextResponse } from "next/server"
 
 interface RouteContext {
@@ -17,15 +18,21 @@ export async function GET(
   // Remove .json suffix if present (shadcn CLI may include it)
   const id = rawId.endsWith('.json') ? rawId.slice(0, -5) : rawId
   
-  // Validate normalized ID is not empty
-  if (!id) {
-    return NextResponse.redirect(new URL('/', request.url))
+  // Validate normalized ID format
+  if (!id || !validateSnippetId(id)) {
+    return NextResponse.json(
+      { error: 'Snippet not found' },
+      { status: 404 }
+    )
   }
   
   const snippet = await getSnippet(id)
 
   if (!snippet) {
-    return NextResponse.redirect(new URL('/', request.url))
+    return NextResponse.json(
+      { error: 'Snippet not found' },
+      { status: 404 }
+    )
   }
 
   // Convert Snippet back to Registry JSON format for shadcn CLI
