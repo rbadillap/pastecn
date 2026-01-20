@@ -5,7 +5,7 @@ import type { Metadata } from "next"
 
 export const cache = false
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pastecn.vercel.app'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pastecn.com'
 
 export const metadata: Metadata = {
   title: "How to Create a shadcn Registry URL in 5 Seconds — pastecn",

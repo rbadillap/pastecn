@@ -19,7 +19,7 @@ const brandFont = Instrument_Serif({
   display: "swap",
 })
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pastecn.vercel.app'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pastecn.com'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
