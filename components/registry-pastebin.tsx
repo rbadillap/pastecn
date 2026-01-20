@@ -181,14 +181,14 @@ export function RegistryPastebin() {
           </div>
 
           {/* Editor Container - Unified */}
-          <div className="flex-1 flex flex-col border border-border rounded-lg overflow-hidden bg-muted/30">
+          <div className="flex-1 flex flex-col border border-border rounded-lg overflow-hidden bg-muted/50">
             {/* Textarea */}
             <div className="relative flex-1 min-h-[300px] md:min-h-[400px]">
               <textarea
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder={`// Paste your code here...`}
-                className="w-full h-full min-h-[300px] md:min-h-[400px] bg-transparent p-4 font-mono text-base md:text-sm resize-none focus:outline-none placeholder:text-muted-foreground/50 border-0"
+                className="w-full h-full min-h-[300px] md:min-h-[400px] bg-transparent p-4 font-mono text-base md:text-sm resize-none focus:outline-none placeholder:text-muted-foreground/70 border-0"
                 spellCheck={false}
                 autoFocus
                 disabled={isUploading}
@@ -300,7 +300,6 @@ export function RegistryPastebin() {
       </div>
 
       {/* Footer */}
-      {/* Footer */}
       <footer className="border-t border-border py-4">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-2">
           <p className="text-xs text-muted-foreground">
@@ -317,7 +316,7 @@ export function RegistryPastebin() {
           </p>
           <nav className="flex items-center gap-4 text-xs">
             <Link href="/use-cases/shadcn-registry-urls" className="text-muted-foreground hover:text-foreground transition-colors">
-              Use Case
+              Use Cases
             </Link>
             <Link href="/blog/how-to-create-shadcn-registry-url" className="text-muted-foreground hover:text-foreground transition-colors">
               Blog

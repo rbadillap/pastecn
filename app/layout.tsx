@@ -105,7 +105,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${brandFont.variable}`}>
-      <body className="font-sans antialiased bg-neutral-100">
+      <body className="font-sans antialiased bg-neutral-200">
         {children}
         <Analytics />
       </body>
