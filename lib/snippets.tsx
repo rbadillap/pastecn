@@ -1,5 +1,6 @@
 import { cache } from 'react'
 import { head, BlobNotFoundError } from '@vercel/blob'
+import { validateRegistryJson } from './validation'
 
 // Types for registry snippets
 export interface Snippet {
@@ -35,6 +36,12 @@ export const getSnippet = cache(async (id: string): Promise<Snippet | null> => {
     }
     
     const json = await response.json()
+    
+    // Validate registry JSON structure and paths (prevents malformed or malicious snippets)
+    if (!validateRegistryJson(json)) {
+      console.error('Invalid registry JSON structure or unsafe paths for snippet:', id)
+      return null
+    }
     
     // Map Registry JSON to Snippet
     const file = json.files[0]
