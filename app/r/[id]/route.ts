@@ -1,6 +1,7 @@
 import { getSnippet } from "@/lib/snippets"
 import { validateSnippetId } from "@/lib/validation"
 import { NextResponse } from "next/server"
+import { track } from "@vercel/analytics/server"
 
 interface RouteContext {
   params: Promise<{ id: string }>
@@ -20,6 +21,10 @@ export async function GET(
   
   // Validate normalized ID format
   if (!id || !validateSnippetId(id)) {
+    track('registry_not_found', {
+      snippet_id: id,
+      normalized_id: rawId,
+    })
     return NextResponse.json(
       { error: 'Snippet not found' },
       { status: 404 }
@@ -29,6 +34,10 @@ export async function GET(
   const snippet = await getSnippet(id)
 
   if (!snippet) {
+    track('registry_not_found', {
+      snippet_id: id,
+      normalized_id: rawId,
+    })
     return NextResponse.json(
       { error: 'Snippet not found' },
       { status: 404 }
@@ -55,6 +64,13 @@ export async function GET(
       },
     ],
   }
+
+  // Track registry access
+  track('registry_accessed', {
+    snippet_id: id,
+    user_agent: request.headers.get('user-agent') || 'unknown',
+    referer: request.headers.get('referer') || 'direct',
+  })
 
   return NextResponse.json(registryJson, {
     headers: {

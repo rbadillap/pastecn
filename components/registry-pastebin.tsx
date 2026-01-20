@@ -6,6 +6,7 @@ import Link from "next/link"
 import { ChevronDown, Loader2 } from "lucide-react"
 import { upload } from "@vercel/blob/client"
 import { nanoid } from "nanoid"
+import { track } from "@vercel/analytics/react"
 import { validatePath } from "@/lib/validation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -81,6 +82,15 @@ export function RegistryPastebin() {
                     (target ? validatePath(target) : true)
     
     setIsPathInvalid(!isValid)
+    
+    // Track validation errors
+    if (!isValid) {
+      track('path_validation_error', {
+        registry_type: registryType,
+        invalid_path: finalFileName,
+      })
+    }
+    
     return isValid
   }
 
@@ -89,6 +99,10 @@ export function RegistryPastebin() {
     
     // Validate paths before proceeding
     if (!validatePaths()) {
+      track('snippet_creation_error', {
+        error_type: 'validation_error',
+        retry_count: 0,
+      })
       setIsUploading(false)
       return
     }
@@ -135,6 +149,14 @@ export function RegistryPastebin() {
           handleUploadUrl: '/api/snippets/upload',
         })
         
+        // Track successful snippet creation
+        track('snippet_created', {
+          registry_type: registryType,
+          has_custom_filename: !!fileName.trim(),
+          code_length: code.length,
+          filename_length: finalFileName.length,
+        })
+        
         // Success - redirect to preview page
         router.push(`/p/${id}`)
         return
@@ -150,8 +172,18 @@ export function RegistryPastebin() {
             id = generateId() // Generate new ID and retry
             continue
           }
+          // Track error after max retries
+          track('snippet_creation_error', {
+            error_type: 'id_collision',
+            retry_count: retries,
+          })
           setError('Failed to create snippet after multiple attempts. Please try again.')
         } else {
+          // Track upload failure
+          track('snippet_creation_error', {
+            error_type: 'upload_failed',
+            retry_count: retries,
+          })
           setError('Failed to upload snippet. Please try again.')
           setIsUploading(false)
           return
@@ -216,6 +248,12 @@ export function RegistryPastebin() {
                         <button
                           key={type.value}
                           onClick={() => {
+                            if (registryType !== type.value) {
+                              track('registry_type_changed', {
+                                from_type: registryType,
+                                to_type: type.value,
+                              })
+                            }
                             setRegistryType(type.value)
                             setTypeMenuOpen(false)
                           }}
