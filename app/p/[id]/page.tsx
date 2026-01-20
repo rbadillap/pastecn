@@ -8,7 +8,7 @@ interface SnippetPageProps {
   params: Promise<{ id: string }>
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pastecn.vercel.app'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pastecn.com'
 
 // Cache this page indefinitely since snippets are immutable
 export const revalidate = false

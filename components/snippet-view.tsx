@@ -15,8 +15,8 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
   const [copiedCommand, setCopiedCommand] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(false)
 
-  const registryUrl = `https://pastecn.vercel.app/r/${snippet.id}`
-  const previewUrl = `https://pastecn.vercel.app/p/${snippet.id}`
+  const registryUrl = `https://pastecn.com/r/${snippet.id}`
+  const previewUrl = `https://pastecn.com/p/${snippet.id}`
   const npxCommand = `npx shadcn@latest add ${registryUrl}.json`
 
   // Track snippet view on mount
