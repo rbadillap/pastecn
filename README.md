@@ -17,7 +17,13 @@ Create shareable shadcn/ui registry URLs. Paste your code, get a registry URL co
 
 ### Installing a snippet
 
-After creating the snippet, you can simply run `shadcn add` to distribute your file.
+After creating the snippet, you can install it using the namespace:
+
+```sh
+npx shadcn@latest add @pastecn/{id}
+```
+
+Or using the full URL:
 
 ```sh
 npx shadcn@latest add https://pastecn.com/r/{id}

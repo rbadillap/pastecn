@@ -17,7 +17,7 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
 
   const registryUrl = `https://pastecn.com/r/${snippet.id}`
   const previewUrl = `https://pastecn.com/p/${snippet.id}`
-  const npxCommand = `npx shadcn@latest add ${registryUrl}.json`
+  const npxCommand = `npx shadcn@latest add @pastecn/${snippet.id}`
 
   // Track snippet view on mount
   useEffect(() => {

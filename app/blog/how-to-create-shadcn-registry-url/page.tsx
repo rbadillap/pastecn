@@ -98,15 +98,18 @@ export default function BlogPostRegistryUrl() {
           <section className="mb-10">
             <h2 className="text-xl font-medium mb-4">What the recipient does</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Anyone with the URL can install your component with one command:
+              Anyone with the snippet ID can install your component with one command:
             </p>
             <div className="bg-muted-foreground/10 border border-primary/10 rounded-lg p-4 font-mono text-sm mb-4">
-              npx shadcn@latest add https://pastecn.com/r/abc123
+              npx shadcn@latest add @pastecn/abc123
             </div>
-            <p className="text-muted-foreground leading-relaxed">
+            <p className="text-muted-foreground leading-relaxed mb-2">
               The CLI handles everything — downloading the code, placing it in the right directory,
               and installing any dependencies. The person receiving your component doesn&apos;t need to
               know anything about registries.
+            </p>
+            <p className="text-muted-foreground text-sm italic">
+              You can also use the full URL: <code className="text-xs">npx shadcn@latest add https://pastecn.com/r/abc123</code>
             </p>
           </section>
 
