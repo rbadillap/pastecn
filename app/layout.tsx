@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono, Instrument_Sans, Instrument_Serif } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import { AnnouncementBanner } from "@/components/announcement-banner"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -106,6 +107,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${brandFont.variable}`}>
       <body className="font-sans antialiased bg-neutral-100">
+        <AnnouncementBanner />
         {children}
         <Analytics />
       </body>
