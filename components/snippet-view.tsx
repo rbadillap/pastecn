@@ -123,43 +123,46 @@ export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
             ))}
           </div>
 
-          {/* Preview URL */}
-          <div className="mb-4">
-            <label className="block text-xs text-muted-foreground mb-2">Preview URL</label>
-            <button
-              onClick={handleCopyUrl}
-              className="w-full flex items-center gap-3 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
-            >
-              <LinkIcon className="h-4 w-4 shrink-0 opacity-70" />
-              <code className="flex-1 font-mono text-sm truncate text-left">{previewUrl}</code>
-              {copiedUrl ? (
-                <Check className="h-4 w-4 shrink-0 text-green-400" />
-              ) : (
-                <Copy className="h-4 w-4 shrink-0 opacity-70" />
-              )}
-            </button>
-            {copiedUrl && <p className="text-xs text-muted-foreground mt-2 text-center">URL copied!</p>}
+          {/* URLs Grid - Side by side on desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {/* Preview URL */}
+            <div>
+              <label className="block text-xs text-muted-foreground mb-2">Preview URL</label>
+              <button
+                onClick={handleCopyUrl}
+                className="w-full flex items-center gap-2 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
+              >
+                <LinkIcon className="h-4 w-4 shrink-0 opacity-70" />
+                <code className="flex-1 font-mono text-xs truncate text-left">{previewUrl}</code>
+                {copiedUrl ? (
+                  <Check className="h-4 w-4 shrink-0 text-green-400" />
+                ) : (
+                  <Copy className="h-4 w-4 shrink-0 opacity-70" />
+                )}
+              </button>
+              {copiedUrl && <p className="text-xs text-muted-foreground mt-1.5 text-center">Copied!</p>}
+            </div>
+
+            {/* Raw JSON URL */}
+            <div>
+              <label className="block text-xs text-muted-foreground mb-2">Raw JSON</label>
+              <button
+                onClick={handleCopyRegistryUrl}
+                className="w-full flex items-center gap-2 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
+              >
+                <FileJson className="h-4 w-4 shrink-0 opacity-70" />
+                <code className="flex-1 font-mono text-xs truncate text-left">{registryUrl}</code>
+                {copiedRegistryUrl ? (
+                  <Check className="h-4 w-4 shrink-0 text-green-400" />
+                ) : (
+                  <Copy className="h-4 w-4 shrink-0 opacity-70" />
+                )}
+              </button>
+              {copiedRegistryUrl && <p className="text-xs text-muted-foreground mt-1.5 text-center">Copied!</p>}
+            </div>
           </div>
 
-          {/* Raw JSON URL */}
-          <div className="mb-4">
-            <label className="block text-xs text-muted-foreground mb-2">Raw JSON</label>
-            <button
-              onClick={handleCopyRegistryUrl}
-              className="w-full flex items-center gap-3 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
-            >
-              <FileJson className="h-4 w-4 shrink-0 opacity-70" />
-              <code className="flex-1 font-mono text-sm truncate text-left">{registryUrl}</code>
-              {copiedRegistryUrl ? (
-                <Check className="h-4 w-4 shrink-0 text-green-400" />
-              ) : (
-                <Copy className="h-4 w-4 shrink-0 opacity-70" />
-              )}
-            </button>
-            {copiedRegistryUrl && <p className="text-xs text-muted-foreground mt-2 text-center">Registry URL copied!</p>}
-          </div>
-
-          {/* NPX Command */}
+          {/* NPX Command - Full width, highlighted */}
           <div>
             <label className="block text-xs text-muted-foreground mb-2">Install Command</label>
             <button
