@@ -67,8 +67,6 @@ export async function GET(
   track('registry_accessed', {
     snippet_id: id,
     file_count: snippet.files.length,
-    user_agent: request.headers.get('user-agent') || 'unknown',
-    referer: request.headers.get('referer') || 'direct',
   })
 
   return NextResponse.json(registryJson, {
