@@ -2,23 +2,45 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Check, Copy, Terminal, Plus, Link as LinkIcon, FileJson } from "lucide-react"
+import { Check, Copy, Plus, Link as LinkIcon, FileJson, Terminal, ChevronDown } from "lucide-react"
 import { track } from "@vercel/analytics/react"
 import type { Snippet } from "@/lib/snippets"
+import { TerminalCodeRoot, TerminalCodeHeader, TerminalCodeCommand } from "@/components/terminal-code"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface SnippetViewProps {
   snippet: Snippet
   codePreviews: { id: number; preview: React.ReactNode }[]
 }
 
+type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun'
+
 export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
   const [copiedCommand, setCopiedCommand] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(false)
   const [copiedRegistryUrl, setCopiedRegistryUrl] = useState(false)
+  const [packageManager, setPackageManager] = useState<PackageManager>('npm')
 
   const registryUrl = `https://pastecn.com/r/${snippet.id}`
   const previewUrl = `https://pastecn.com/p/${snippet.id}`
-  const npxCommand = `npx shadcn@latest add @pastecn/${snippet.id}`
+
+  const getInstallCommand = (pm: PackageManager) => {
+    const commands = {
+      npm: `npx shadcn@latest add @pastecn/${snippet.id}`,
+      pnpm: `pnpm dlx shadcn@latest add @pastecn/${snippet.id}`,
+      yarn: `yarn dlx shadcn@latest add @pastecn/${snippet.id}`,
+      bun: `bunx --bun shadcn@latest add @pastecn/${snippet.id}`,
+    }
+    return commands[pm]
+  }
+
+  const installCommand = getInstallCommand(packageManager)
 
   // Track snippet view on mount
   useEffect(() => {
@@ -32,12 +54,13 @@ export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
   }, [snippet.id, snippet.type, snippet.meta.primaryLanguage, snippet.files])
 
   const handleCopyCommand = async () => {
-    await navigator.clipboard.writeText(npxCommand)
+    await navigator.clipboard.writeText(installCommand)
     setCopiedCommand(true)
     setTimeout(() => setCopiedCommand(false), 3000)
     track('command_copied', {
       snippet_id: snippet.id,
       snippet_type: snippet.type,
+      package_manager: packageManager,
     })
   }
 
@@ -75,109 +98,118 @@ export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
             </a>
           </nav>
 
-          {/* Block badge */}
-          {snippet.type === 'block' && (
-            <div className="mb-2 text-center">
-              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                Registry Block
-              </span>
-            </div>
+          {/* Code Previews - render all files */}
+          {snippet.files.length === 1 ? (
+            <TerminalCodeRoot className="mb-6 bg-muted border-border">
+              <TerminalCodeHeader title={snippet.files[0].path} />
+              <div className="[&_>div]:!border-none [&_>div]:!rounded-none [&_pre]:!bg-transparent">
+                {codePreviews[0]?.preview}
+              </div>
+            </TerminalCodeRoot>
+          ) : (
+            <TerminalCodeRoot className="mb-6 bg-muted border-border">
+              <Tabs defaultValue="0">
+                <div className="flex items-center gap-3 mb-3 pb-2 border-b border-border">
+                  <Terminal className="w-4 h-4 text-neutral-400" />
+                  <TabsList className="h-auto p-0 bg-transparent">
+                    {snippet.files.map((file, idx) => {
+                      const basename = file.path.split(/[/\\]/).pop() || file.path
+                      return (
+                        <TabsTrigger key={idx} value={String(idx)} className="text-xs">
+                          {basename}
+                        </TabsTrigger>
+                      )
+                    })}
+                  </TabsList>
+                </div>
+                {snippet.files.map((file, idx) => (
+                  <TabsContent key={idx} value={String(idx)} className="mt-0">
+                    <div className="mb-2 text-xs text-muted-foreground font-mono">
+                      {file.path}
+                    </div>
+                    <div className="[&_>div]:!border-none [&_>div]:!rounded-none [&_pre]:!bg-transparent">
+                      {codePreviews[idx]?.preview}
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </TerminalCodeRoot>
           )}
 
-          {/* File paths */}
-          <div className="mb-3 text-center">
-            {snippet.files.length === 1 ? (
-              <code className="font-mono text-sm text-muted-foreground">
-                {snippet.files[0].target}
-              </code>
-            ) : (
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground mb-2">
-                  {snippet.files.length} files
-                </p>
-                {snippet.files.map((file, idx) => (
-                  <div key={idx} className="flex items-center justify-center gap-2">
-                    <code className="font-mono text-xs text-muted-foreground">
-                      {file.target}
-                    </code>
-                    <span className="text-xs text-primary">
-                      ({file.type})
-                    </span>
+          {/* Install Command - Primary action */}
+          <div className="mb-6">
+            <div className="w-full group relative">
+              <TerminalCodeRoot className="relative">
+                {/* Custom header with dropdown */}
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-neutral-800">
+                  <Terminal className="w-4 h-4 text-neutral-400" />
+                  <span className="text-xs text-neutral-400 font-mono">terminal</span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="ml-auto flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-100 transition-colors">
+                      {packageManager}
+                      <ChevronDown className="w-3 h-3" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setPackageManager('npm')}>
+                        npm
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setPackageManager('pnpm')}>
+                        pnpm
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setPackageManager('yarn')}>
+                        yarn
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setPackageManager('bun')}>
+                        bun
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <button
+                  onClick={handleCopyCommand}
+                  className="w-full text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <TerminalCodeCommand>{installCommand}</TerminalCodeCommand>
+                    {copiedCommand ? (
+                      <Check className="h-4 w-4 shrink-0 text-emerald-400 absolute right-4 top-[52px]" />
+                    ) : (
+                      <Copy className="h-4 w-4 shrink-0 text-neutral-400 opacity-70 group-hover:opacity-100 transition-opacity absolute right-4 top-[52px]" />
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </button>
+              </TerminalCodeRoot>
+            </div>
 
-          {/* Code Previews - render all files */}
-          <div className="space-y-4 mb-6">
-            {snippet.files.map((file, idx) => (
-              <div key={idx}>
-                {snippet.files.length > 1 && (
-                  <div className="mb-2 text-xs text-muted-foreground font-mono">
-                    {file.path}
-                  </div>
-                )}
-                {codePreviews[idx]?.preview}
-              </div>
-            ))}
-          </div>
-
-          {/* URLs Grid - Side by side on desktop */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            {/* Preview URL */}
-            <div>
-              <label className="block text-xs text-muted-foreground mb-2">Preview URL</label>
+            {/* Compact URL links */}
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-6 mt-4 text-xs text-muted-foreground">
               <button
                 onClick={handleCopyUrl}
-                className="w-full flex items-center gap-2 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
+                className="flex items-center gap-2 hover:text-foreground transition-colors w-fit group"
               >
-                <LinkIcon className="h-4 w-4 shrink-0 opacity-70" />
-                <code className="flex-1 font-mono text-xs truncate text-left">{previewUrl}</code>
+                <LinkIcon className="h-3 w-3" />
+                <span>Preview:</span>
+                <code className="font-mono">pastecn.com/p/{snippet.id}</code>
                 {copiedUrl ? (
-                  <Check className="h-4 w-4 shrink-0 text-green-400" />
+                  <Check className="h-3 w-3 text-green-600" />
                 ) : (
-                  <Copy className="h-4 w-4 shrink-0 opacity-70" />
+                  <Copy className="h-3 w-3 opacity-30 group-hover:opacity-100 transition-opacity" />
                 )}
               </button>
-              {copiedUrl && <p className="text-xs text-muted-foreground mt-1.5 text-center">Copied!</p>}
-            </div>
-
-            {/* Raw JSON URL */}
-            <div>
-              <label className="block text-xs text-muted-foreground mb-2">Raw JSON</label>
               <button
                 onClick={handleCopyRegistryUrl}
-                className="w-full flex items-center gap-2 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
+                className="flex items-center gap-2 hover:text-foreground transition-colors w-fit group"
               >
-                <FileJson className="h-4 w-4 shrink-0 opacity-70" />
-                <code className="flex-1 font-mono text-xs truncate text-left">{registryUrl}</code>
+                <FileJson className="h-3 w-3" />
+                <span>JSON:</span>
+                <code className="font-mono">pastecn.com/r/{snippet.id}</code>
                 {copiedRegistryUrl ? (
-                  <Check className="h-4 w-4 shrink-0 text-green-400" />
+                  <Check className="h-3 w-3 text-green-600" />
                 ) : (
-                  <Copy className="h-4 w-4 shrink-0 opacity-70" />
+                  <Copy className="h-3 w-3 opacity-30 group-hover:opacity-100 transition-opacity" />
                 )}
               </button>
-              {copiedRegistryUrl && <p className="text-xs text-muted-foreground mt-1.5 text-center">Copied!</p>}
             </div>
-          </div>
-
-          {/* NPX Command - Full width, highlighted */}
-          <div>
-            <label className="block text-xs text-muted-foreground mb-2">Install Command</label>
-            <button
-              onClick={handleCopyCommand}
-              className="w-full flex items-center gap-3 bg-foreground text-background border border-border rounded-lg p-4 hover:bg-foreground/90 transition-colors cursor-pointer"
-            >
-              <Terminal className="h-4 w-4 shrink-0 opacity-70" />
-              <code className="flex-1 font-mono text-sm truncate text-left">{npxCommand}</code>
-              {copiedCommand ? (
-                <Check className="h-4 w-4 shrink-0 text-green-400" />
-              ) : (
-                <Copy className="h-4 w-4 shrink-0 opacity-70" />
-              )}
-            </button>
-            {copiedCommand && <p className="text-xs text-muted-foreground mt-2 text-center">Copied. Ready to share.</p>}
           </div>
         </div>
       </div>
