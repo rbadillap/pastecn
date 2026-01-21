@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ChevronDown, Loader2, Code2, Plus } from "lucide-react"
@@ -19,6 +19,8 @@ import {
   InputGroupInput
 } from "./ui/input-group"
 import { Kbd } from "./ui/kbd"
+import { useLocalStorageDraft } from "@/hooks/use-local-storage-draft"
+import { toast } from "@/hooks/use-toast"
 
 type RegistryType = "file" | "component" | "hook" | "lib"
 
@@ -90,16 +92,63 @@ interface FileInput {
   registryType: RegistryType
 }
 
+interface DraftData {
+  files: FileInput[]
+  snippetName: string
+}
+
 export function RegistryPastebin() {
   const router = useRouter()
-  const [files, setFiles] = useState<FileInput[]>([
-    { id: nanoid(), code: "", fileName: "", language: "typescript", registryType: "component" }
-  ])
-  const [snippetName, setSnippetName] = useState("")
+
+  // Use localStorage draft persistence
+  const [draftData, setDraftData, clearDraft, hasDraft] = useLocalStorageDraft<DraftData>(
+    {
+      files: [{ id: nanoid(), code: "", fileName: "", language: "typescript", registryType: "component" }],
+      snippetName: ""
+    },
+    {
+      key: "pastecn:draft",
+      version: 1,
+      debounceMs: 500,
+      maxAge: 7 * 24 * 60 * 60 * 1000  // 7 days
+    }
+  )
+
+  // Create compatibility helpers
+  const files = draftData.files
+  const snippetName = draftData.snippetName
+
+  const setFiles = (newFiles: FileInput[] | ((prev: FileInput[]) => FileInput[])) => {
+    setDraftData(prev => ({
+      ...prev,
+      files: typeof newFiles === 'function' ? newFiles(prev.files) : newFiles
+    }))
+  }
+
+  const setSnippetName = (name: string) => {
+    setDraftData(prev => ({ ...prev, snippetName: name }))
+  }
+
   const [languageMenuOpen, setLanguageMenuOpen] = useState<string | false>(false)
   const [fileTypeMenuOpen, setFileTypeMenuOpen] = useState<string | false>(false)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Show toast when draft is restored
+  useEffect(() => {
+    if (hasDraft) {
+      toast({
+        title: "Draft restored",
+        description: "Your previous work has been recovered.",
+        duration: 4000,
+      })
+
+      track('draft_restored', {
+        file_count: files.length,
+        total_code_length: files.reduce((sum, f) => sum + f.code.length, 0)
+      })
+    }
+  }, [hasDraft])
 
   const addFile = () => {
     const newFiles = [...files, { id: nanoid(), code: "", fileName: "", language: "typescript", registryType: "component" }]
@@ -260,6 +309,9 @@ export function RegistryPastebin() {
           has_custom_block_name: isMultiFile && !!snippetName.trim(),
           all_files_have_custom_names: files.every(f => !!f.fileName.trim()),
         })
+
+        // Clear draft after successful upload
+        clearDraft()
 
         router.push(`/p/${id}`)
         return
@@ -477,12 +529,33 @@ export function RegistryPastebin() {
                 </InputGroup>
               </div>
             )}
+            {hasDraft && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  // TODO: Add a confirmation dialog before shadcn kills me
+                  if (confirm("Clear draft? This will reset all fields.")) {
+                    clearDraft()
+                    setDraftData({
+                      files: [{ id: nanoid(), code: "", fileName: "", language: "typescript", registryType: "component" }],
+                      snippetName: ""
+                    })
+                    track('draft_cleared', { file_count: files.length })
+                  }
+                }}
+                disabled={isUploading}
+                className={files.length === 1 ? "ml-auto" : ""}
+              >
+                Clear Draft
+              </Button>
+            )}
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={addFile}
               disabled={isUploading}
-              className={files.length === 1 ? "ml-auto" : ""}
+              className={`hover:text-muted-foreground ${files.length === 1 && !hasDraft ? "ml-auto" : ""}`}
             >
               <Plus className="h-4 w-4 mr-1" />
               Add File
