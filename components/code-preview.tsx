@@ -19,11 +19,11 @@ export async function CodePreview({ code, language, maxLines = 12 }: CodePreview
   return (
     <div className="relative">
       <div
-        className="overflow-hidden rounded-lg border border-border bg-[#ffffff] [&_pre]:!bg-transparent [&_pre]:p-4 [&_pre]:text-sm [&_code]:!text-sm"
+        className="overflow-hidden rounded-lg border border-border bg-background [&_pre]:!bg-transparent [&_pre]:p-4 [&_pre]:text-sm [&_code]:!text-sm"
         dangerouslySetInnerHTML={{ __html: html }}
       />
       {hasMore && (
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#ffffff] to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
       )}
     </div>
   )
