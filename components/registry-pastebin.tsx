@@ -103,7 +103,7 @@ export function RegistryPastebin() {
   // Use localStorage draft persistence
   const [draftData, setDraftData, clearDraft, hasDraft] = useLocalStorageDraft<DraftData>(
     {
-      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "component" }],
+      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "file" }],
       snippetName: ""
     },
     {
@@ -151,7 +151,7 @@ export function RegistryPastebin() {
   }, [hasDraft])
 
   const addFile = () => {
-    const newFiles: FileInput[] = [...files, { id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "component" }]
+    const newFiles: FileInput[] = [...files, { id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "file" }]
     setFiles(newFiles)
 
     track('file_added', {
@@ -538,7 +538,7 @@ export function RegistryPastebin() {
                   if (confirm("Clear draft? This will reset all fields.")) {
                     clearDraft()
                     setDraftData({
-                      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "component" }],
+                      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "file" }],
                       snippetName: ""
                     })
                     track('draft_cleared', { file_count: files.length })
