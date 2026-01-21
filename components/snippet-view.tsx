@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Check, Copy, Terminal, Plus, Link as LinkIcon } from "lucide-react"
+import { Check, Copy, Terminal, Plus, Link as LinkIcon, FileJson } from "lucide-react"
 import { track } from "@vercel/analytics/react"
 import type { Snippet } from "@/lib/snippets"
 
@@ -14,6 +14,7 @@ interface SnippetViewProps {
 export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
   const [copiedCommand, setCopiedCommand] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(false)
+  const [copiedRegistryUrl, setCopiedRegistryUrl] = useState(false)
 
   const registryUrl = `https://pastecn.com/r/${snippet.id}`
   const previewUrl = `https://pastecn.com/p/${snippet.id}`
@@ -45,6 +46,16 @@ export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
     setCopiedUrl(true)
     setTimeout(() => setCopiedUrl(false), 3000)
     track('preview_url_copied', {
+      snippet_id: snippet.id,
+      snippet_type: snippet.type,
+    })
+  }
+
+  const handleCopyRegistryUrl = async () => {
+    await navigator.clipboard.writeText(registryUrl)
+    setCopiedRegistryUrl(true)
+    setTimeout(() => setCopiedRegistryUrl(false), 3000)
+    track('registry_url_copied', {
       snippet_id: snippet.id,
       snippet_type: snippet.type,
     })
@@ -128,6 +139,24 @@ export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
               )}
             </button>
             {copiedUrl && <p className="text-xs text-muted-foreground mt-2 text-center">URL copied!</p>}
+          </div>
+
+          {/* Raw JSON URL */}
+          <div className="mb-4">
+            <label className="block text-xs text-muted-foreground mb-2">Raw JSON</label>
+            <button
+              onClick={handleCopyRegistryUrl}
+              className="w-full flex items-center gap-3 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
+            >
+              <FileJson className="h-4 w-4 shrink-0 opacity-70" />
+              <code className="flex-1 font-mono text-sm truncate text-left">{registryUrl}</code>
+              {copiedRegistryUrl ? (
+                <Check className="h-4 w-4 shrink-0 text-green-400" />
+              ) : (
+                <Copy className="h-4 w-4 shrink-0 opacity-70" />
+              )}
+            </button>
+            {copiedRegistryUrl && <p className="text-xs text-muted-foreground mt-2 text-center">Registry URL copied!</p>}
           </div>
 
           {/* NPX Command */}
