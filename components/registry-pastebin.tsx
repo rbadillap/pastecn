@@ -103,7 +103,7 @@ export function RegistryPastebin() {
   // Use localStorage draft persistence
   const [draftData, setDraftData, clearDraft, hasDraft] = useLocalStorageDraft<DraftData>(
     {
-      files: [{ id: nanoid(), code: "", fileName: "", language: "typescript", registryType: "component" }],
+      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext" as LanguageType, registryType: "component" as RegistryType }],
       snippetName: ""
     },
     {
@@ -151,7 +151,7 @@ export function RegistryPastebin() {
   }, [hasDraft])
 
   const addFile = () => {
-    const newFiles = [...files, { id: nanoid(), code: "", fileName: "", language: "typescript", registryType: "component" }]
+    const newFiles = [...files, { id: nanoid(), code: "", fileName: "", language: "plaintext" as LanguageType, registryType: "component" as RegistryType }]
     setFiles(newFiles)
 
     track('file_added', {
@@ -386,52 +386,11 @@ export function RegistryPastebin() {
                     {/* Language + Type Selector (Top Bar) */}
                     <InputGroupAddon align="block-start" className="border-b">
                       <div className="flex items-center gap-4 w-full">
-                        {/* Language selector */}
-                        <div className="flex items-center gap-2">
-                          <InputGroupText>
-                            <Code2 className="h-4 w-4" />
-                            <span className="text-xs">Language:</span>
-                          </InputGroupText>
-
-                          <div className="relative">
-                            <InputGroupButton
-                              size="xs"
-                              onClick={() => {
-                                const newState = languageMenuOpen === file.id ? false : file.id
-                                setLanguageMenuOpen(newState)
-                              }}
-                              disabled={isUploading}
-                            >
-                              {languages.find(l => l.value === file.language)?.label || 'TypeScript'}
-                              <ChevronDown className={`h-3 w-3 transition-transform ${languageMenuOpen === file.id ? "rotate-180" : ""}`} />
-                            </InputGroupButton>
-
-                            {languageMenuOpen === file.id && (
-                              <div className="absolute top-full left-0 mt-1 py-1 bg-background border border-border rounded-md shadow-lg z-10 min-w-[140px]">
-                                {languages.map((lang) => (
-                                  <button
-                                    key={lang.value}
-                                    onClick={() => {
-                                      updateFile(file.id, { language: lang.value })
-                                      setLanguageMenuOpen(false)
-                                    }}
-                                    className={`w-full px-3 py-1.5 text-xs text-left hover:bg-accent transition-colors ${
-                                      file.language === lang.value ? "text-foreground font-medium" : "text-muted-foreground"
-                                    }`}
-                                  >
-                                    {lang.label}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
                         {/* Type selector */}
                         <div className="flex items-center gap-2">
                           <InputGroupText>
                             <Icons.shadcn className="h-4 w-4" />
-                            <span className="text-xs">Type:</span>
+                            <span className="text-xs hidden md:inline">Type:</span>
                           </InputGroupText>
 
                           <div className="relative">
@@ -467,6 +426,47 @@ export function RegistryPastebin() {
                                     }`}
                                   >
                                     {type.label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Language selector */}
+                        <div className="flex items-center gap-2">
+                          <InputGroupText>
+                            <Code2 className="h-4 w-4" />
+                            <span className="text-xs hidden md:inline">Language:</span>
+                          </InputGroupText>
+
+                          <div className="relative">
+                            <InputGroupButton
+                              size="xs"
+                              onClick={() => {
+                                const newState = languageMenuOpen === file.id ? false : file.id
+                                setLanguageMenuOpen(newState)
+                              }}
+                              disabled={isUploading}
+                            >
+                              {languages.find(l => l.value === file.language)?.label || 'Plain Text'}
+                              <ChevronDown className={`h-3 w-3 transition-transform ${languageMenuOpen === file.id ? "rotate-180" : ""}`} />
+                            </InputGroupButton>
+
+                            {languageMenuOpen === file.id && (
+                              <div className="absolute top-full left-0 mt-1 py-1 bg-background border border-border rounded-md shadow-lg z-10 min-w-[140px]">
+                                {languages.map((lang) => (
+                                  <button
+                                    key={lang.value}
+                                    onClick={() => {
+                                      updateFile(file.id, { language: lang.value })
+                                      setLanguageMenuOpen(false)
+                                    }}
+                                    className={`w-full px-3 py-1.5 text-xs text-left hover:bg-accent transition-colors ${
+                                      file.language === lang.value ? "text-foreground font-medium" : "text-muted-foreground"
+                                    }`}
+                                  >
+                                    {lang.label}
                                   </button>
                                 ))}
                               </div>
@@ -538,7 +538,7 @@ export function RegistryPastebin() {
                   if (confirm("Clear draft? This will reset all fields.")) {
                     clearDraft()
                     setDraftData({
-                      files: [{ id: nanoid(), code: "", fileName: "", language: "typescript", registryType: "component" }],
+                      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext" as LanguageType, registryType: "component" as RegistryType }],
                       snippetName: ""
                     })
                     track('draft_cleared', { file_count: files.length })
