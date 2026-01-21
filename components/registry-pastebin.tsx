@@ -103,7 +103,7 @@ export function RegistryPastebin() {
   // Use localStorage draft persistence
   const [draftData, setDraftData, clearDraft, hasDraft] = useLocalStorageDraft<DraftData>(
     {
-      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext" as LanguageType, registryType: "component" as RegistryType }],
+      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "component" }],
       snippetName: ""
     },
     {
@@ -151,7 +151,7 @@ export function RegistryPastebin() {
   }, [hasDraft])
 
   const addFile = () => {
-    const newFiles = [...files, { id: nanoid(), code: "", fileName: "", language: "plaintext" as LanguageType, registryType: "component" as RegistryType }]
+    const newFiles: FileInput[] = [...files, { id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "component" }]
     setFiles(newFiles)
 
     track('file_added', {
@@ -449,7 +449,7 @@ export function RegistryPastebin() {
                               }}
                               disabled={isUploading}
                             >
-                              {languages.find(l => l.value === file.language)?.label || 'Plain Text'}
+                              {languages.find(l => l.value === file.language)?.label || languages.find(l => l.value === "plaintext")?.label}
                               <ChevronDown className={`h-3 w-3 transition-transform ${languageMenuOpen === file.id ? "rotate-180" : ""}`} />
                             </InputGroupButton>
 
@@ -538,7 +538,7 @@ export function RegistryPastebin() {
                   if (confirm("Clear draft? This will reset all fields.")) {
                     clearDraft()
                     setDraftData({
-                      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext" as LanguageType, registryType: "component" as RegistryType }],
+                      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "component" }],
                       snippetName: ""
                     })
                     track('draft_cleared', { file_count: files.length })
