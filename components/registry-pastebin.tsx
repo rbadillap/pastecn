@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronDown, Loader2, Code2 } from "lucide-react"
+import { ChevronDown, Loader2, Code2, Plus } from "lucide-react"
 import { upload } from "@vercel/blob/client"
 import { nanoid } from "nanoid"
 import { track } from "@vercel/analytics/react"
@@ -19,6 +19,8 @@ import {
   InputGroupInput
 } from "./ui/input-group"
 import { Kbd } from "./ui/kbd"
+import { useLocalStorageDraft } from "@/hooks/use-local-storage-draft"
+import { toast } from "@/hooks/use-toast"
 
 type RegistryType = "file" | "component" | "hook" | "lib"
 
@@ -82,45 +84,146 @@ interface RegistryItemJson {
   }[]
 }
 
+interface FileInput {
+  id: string
+  code: string
+  fileName: string
+  language: LanguageType
+  registryType: RegistryType
+}
+
+interface DraftData {
+  files: FileInput[]
+  snippetName: string
+}
+
 export function RegistryPastebin() {
   const router = useRouter()
-  const [code, setCode] = useState("")
-  const [language, setLanguage] = useState<LanguageType>("typescript")
-  const [registryType, setRegistryType] = useState<RegistryType>("component")
-  const [fileName, setFileName] = useState("")
-  const [languageMenuOpen, setLanguageMenuOpen] = useState(false)
-  const [typeMenuOpen, setTypeMenuOpen] = useState(false)
+
+  // Use localStorage draft persistence
+  const [draftData, setDraftData, clearDraft, hasDraft] = useLocalStorageDraft<DraftData>(
+    {
+      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "file" }],
+      snippetName: ""
+    },
+    {
+      key: "pastecn:draft",
+      version: 2, // Incremented to clear old drafts with incorrect defaults
+      debounceMs: 500,
+      maxAge: 7 * 24 * 60 * 60 * 1000  // 7 days
+    }
+  )
+
+  // Create compatibility helpers
+  const files = draftData.files
+  const snippetName = draftData.snippetName
+
+  const setFiles = (newFiles: FileInput[] | ((prev: FileInput[]) => FileInput[])) => {
+    setDraftData(prev => ({
+      ...prev,
+      files: typeof newFiles === 'function' ? newFiles(prev.files) : newFiles
+    }))
+  }
+
+  const setSnippetName = (name: string) => {
+    setDraftData(prev => ({ ...prev, snippetName: name }))
+  }
+
+  const [languageMenuOpen, setLanguageMenuOpen] = useState<string | false>(false)
+  const [fileTypeMenuOpen, setFileTypeMenuOpen] = useState<string | false>(false)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isPathInvalid, setIsPathInvalid] = useState(false)
-  const languageMenuRef = useRef<HTMLDivElement>(null)
-  const typeMenuRef = useRef<HTMLDivElement>(null)
 
-  const currentType = registryTypes.find((t) => t.value === registryType)!
-  const currentLanguage = languages.find((l) => l.value === language)!
+  // Show toast when draft is restored
+  useEffect(() => {
+    if (hasDraft) {
+      toast({
+        title: "Draft restored",
+        description: "Your previous work has been recovered.",
+        duration: 4000,
+      })
+
+      track('draft_restored', {
+        file_count: files.length,
+        total_code_length: files.reduce((sum, f) => sum + f.code.length, 0)
+      })
+    }
+  }, [hasDraft])
+
+  const addFile = () => {
+    const newFiles: FileInput[] = [...files, { id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "file" }]
+    setFiles(newFiles)
+
+    track('file_added', {
+      total_files: newFiles.length,
+      previous_count: files.length,
+    })
+  }
+
+  const removeFile = (id: string) => {
+    if (files.length > 1) {
+      const newFiles = files.filter(f => f.id !== id)
+      setFiles(newFiles)
+
+      track('file_removed', {
+        total_files: newFiles.length,
+        previous_count: files.length,
+        went_to_single_file: newFiles.length === 1,
+      })
+    }
+  }
+
+  const updateFile = (id: string, updates: Partial<FileInput>) => {
+    setFiles(files.map(f => f.id === id ? { ...f, ...updates } : f))
+  }
+
+  const isFormValid = () => {
+    const isMultiFile = files.length > 1
+
+    if (isMultiFile) {
+      // Multi-file: block name required, all files must have content and filename
+      if (!snippetName.trim()) return false
+
+      for (const file of files) {
+        if (!file.code.trim() || !file.fileName.trim()) return false
+      }
+    } else {
+      // Single-file: only code required
+      if (!files[0].code.trim()) return false
+    }
+
+    return true
+  }
 
   const handleCreate = async () => {
-    if (!code.trim()) return
+    const isMultiFile = files.length > 1
 
-    // Validate paths before proceeding
-    if (fileName.trim()) {
-      const finalFileName = fileName.trim()
-      const fullPath = registryType === "file"
-        ? finalFileName
-        : `${currentType.prefix}${finalFileName}`
-      const target = registryType === "file" ? `~/${finalFileName}` : null
+    // Validation
+    if (isMultiFile) {
+      // Multi-file: all filenames required
+      if (!snippetName.trim()) {
+        setError('Block name is required for multi-file blocks')
+        return
+      }
 
-      const isValid = validatePath(finalFileName) &&
-                      validatePath(fullPath) &&
-                      (target ? validatePath(target) : true)
-
-      if (!isValid) {
-        setIsPathInvalid(true)
-        track('snippet_creation_error', {
-          error_type: 'validation_error',
-          retry_count: 0,
-        })
-        setError('Invalid file path. Please check your input.')
+      for (const file of files) {
+        if (!file.code.trim()) {
+          setError('All files must have content')
+          return
+        }
+        if (!file.fileName.trim()) {
+          setError('All files must have a filename')
+          return
+        }
+        if (!validatePath(file.fileName)) {
+          setError(`Invalid filename: ${file.fileName}`)
+          return
+        }
+      }
+    } else {
+      // Single-file: code required, filename optional
+      if (!files[0].code.trim()) {
+        setError('Code is required')
         return
       }
     }
@@ -128,60 +231,91 @@ export function RegistryPastebin() {
     setIsUploading(true)
     setError(null)
 
+    // AUTO-DETECT: Use block for multi-file, otherwise use the file's registryType
+    const parentType = isMultiFile ? "block" : files[0].registryType
+
+    // Generate snippet ID first (will be used for default filenames)
     let id = generateId()
     let retries = 0
     const maxRetries = 3
 
+    // Helper function to build registry JSON with current ID
+    const buildRegistryJson = (snippetId: string): RegistryItemJson => {
+      const extension = getExtensionFromLanguage(files[0].language)
+
+      let name: string
+      if (isMultiFile) {
+        name = snippetName.trim()
+      } else {
+        const defaultFileName = `snippet-${snippetId}${extension}`
+        const finalFileName = files[0].fileName.trim() || defaultFileName
+        name = getNameFromPath(finalFileName)
+      }
+
+      return {
+        $schema: "https://ui.shadcn.com/schema/registry-item.json",
+        name,
+        type: `registry:${parentType}`,
+        files: files.map(file => {
+          const fileType = file.registryType
+          const fileTypeConfig = registryTypes.find(t => t.value === fileType)!
+
+          const defaultFileName = `snippet-${snippetId}${getExtensionFromLanguage(file.language)}`
+          const finalFileName = file.fileName.trim() || defaultFileName
+          const fullPath = fileType === "file"
+            ? finalFileName
+            : `${fileTypeConfig.prefix}${finalFileName}`
+
+          return {
+            path: fullPath,
+            type: `registry:${fileType}`,
+            content: file.code,
+            ...(fileType === "file" && { target: `~/${finalFileName}` }),
+          }
+        }),
+      }
+    }
+
+    // Upload with retry logic
     while (retries < maxRetries) {
       try {
-        // Generate filename based on user input or default
-        const extension = getExtensionFromLanguage(language)
-        const defaultFileName = `snippet-${id}${extension}`
-        const finalFileName = fileName.trim() || defaultFileName
-        const fullPath = registryType === "file"
-          ? finalFileName
-          : `${currentType.prefix}${finalFileName}`
-        const name = getNameFromPath(finalFileName)
+        // Build registry JSON with current ID
+        const registryJson = buildRegistryJson(id)
 
-        const json: RegistryItemJson = {
-          $schema: "https://ui.shadcn.com/schema/registry-item.json",
-          name,
-          type: currentType.registryType,
-          files: [
-            {
-              path: fullPath,
-              type: currentType.registryType,
-              content: code,
-              ...(registryType === "file" && { target: `~/${finalFileName}` }),
-            },
-          ],
-        }
-
-        const file = new File(
-          [JSON.stringify(json, null, 2)],
+        const blob = await upload(
           `snippets/${id}.json`,
-          { type: 'application/json' }
+          new File([JSON.stringify(registryJson, null, 2)], `snippets/${id}.json`, {
+            type: 'application/json'
+          }),
+          { access: 'public', handleUploadUrl: '/api/snippets/upload' }
         )
 
-        const blob = await upload(file.name, file, {
-          access: 'public',
-          handleUploadUrl: '/api/snippets/upload',
-        })
+        // Collect analytics data
+        const fileTypes = [...new Set(files.map(f => f.registryType))]
+        const languages = [...new Set(files.map(f => f.language))]
 
-        // Track successful snippet creation
         track('snippet_created', {
-          registry_type: registryType,
-          language: language,
-          has_custom_filename: !!fileName.trim(),
-          code_length: code.length,
-          filename_length: finalFileName.length,
+          registry_type: parentType,
+          language: files[0].language,
+          has_custom_filename: isMultiFile || !!files[0].fileName.trim(),
+          code_length: files.reduce((sum, f) => sum + f.code.length, 0),
+          file_count: files.length,
+          is_multi_file: isMultiFile,
+          // Multi-file specific analytics
+          file_types: JSON.stringify(fileTypes),
+          file_types_count: fileTypes.length,
+          has_mixed_types: fileTypes.length > 1,
+          languages_used: JSON.stringify(languages),
+          has_custom_block_name: isMultiFile && !!snippetName.trim(),
+          all_files_have_custom_names: files.every(f => !!f.fileName.trim()),
         })
 
-        // Success - redirect to preview page
+        // Clear draft after successful upload
+        clearDraft()
+
         router.push(`/p/${id}`)
         return
       } catch (error: any) {
-        // Check if it's a 409 collision
         const isCollision = error?.response?.status === 409 ||
                            error?.message?.includes('collision') ||
                            error?.status === 409
@@ -224,154 +358,216 @@ export function RegistryPastebin() {
             <p className="text-muted-foreground text-sm md:text-base">Turn any file into a registry URL</p>
           </div>
 
-          {/* Editor Container with InputGroup */}
-          <InputGroup className="flex-1 flex flex-col min-h-[400px] md:min-h-[500px]">
-            {/* Top Controls - Language Selector */}
-            <InputGroupAddon align="block-start" className="border-b">
-              <div className="flex items-center gap-2 w-full">
-                <InputGroupText>
-                  <Code2 className="h-4 w-4" />
-                  <span className="text-xs">Language:</span>
-                </InputGroupText>
+          {/* File Editors */}
+          <div className="space-y-4 flex-1">
+            {files.map((file, idx) => {
+              const isMultiFile = files.length > 1
+              const fileTypeConfig = registryTypes.find(t => t.value === file.registryType)!
 
-                <div className="relative" ref={languageMenuRef}>
-                  <InputGroupButton
-                    size="xs"
-                    onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
-                    disabled={isUploading}
-                  >
-                    {currentLanguage.label}
-                    <ChevronDown className={`h-3 w-3 transition-transform ${languageMenuOpen ? "rotate-180" : ""}`} />
-                  </InputGroupButton>
-
-                  {languageMenuOpen && (
-                    <div className="absolute top-full left-0 mt-1 py-1 bg-background border border-border rounded-md shadow-lg z-10 min-w-[140px]">
-                      {languages.map((lang) => (
-                        <button
-                          key={lang.value}
-                          onClick={() => {
-                            if (language !== lang.value) {
-                              track('language_changed', {
-                                from_language: language,
-                                to_language: lang.value,
-                              })
-                            }
-                            setLanguage(lang.value)
-                            setLanguageMenuOpen(false)
-                          }}
-                          className={`w-full px-3 py-1.5 text-xs text-left hover:bg-accent transition-colors ${
-                            language === lang.value ? "text-foreground font-medium" : "text-muted-foreground"
-                          }`}
-                        >
-                          {lang.label}
-                        </button>
-                      ))}
+              return (
+                <div key={file.id} className="flex flex-col">
+                  {files.length > 1 && (
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-muted-foreground">
+                        File {idx + 1}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile(file.id)}
+                        disabled={isUploading || files.length === 1}
+                      >
+                        Remove
+                      </Button>
                     </div>
                   )}
+
+                  <InputGroup className="flex-1 flex flex-col min-h-[300px]">
+                    {/* Language + Type Selector (Top Bar) */}
+                    <InputGroupAddon align="block-start" className="border-b">
+                      <div className="flex items-center gap-4 w-full">
+                        {/* Type selector */}
+                        <div className="flex items-center gap-2">
+                          <InputGroupText>
+                            <Icons.shadcn className="h-4 w-4" />
+                            <span className="text-xs hidden md:inline">Type:</span>
+                          </InputGroupText>
+
+                          <div className="relative">
+                            <InputGroupButton
+                              size="xs"
+                              onClick={() => {
+                                const newState = fileTypeMenuOpen === file.id ? false : file.id
+                                setFileTypeMenuOpen(newState)
+                              }}
+                              disabled={isUploading}
+                            >
+                              {fileTypeConfig.label}
+                              <ChevronDown className={`h-3 w-3 transition-transform ${fileTypeMenuOpen === file.id ? "rotate-180" : ""}`} />
+                            </InputGroupButton>
+
+                            {fileTypeMenuOpen === file.id && (
+                              <div className="absolute top-full left-0 mt-1 py-1 bg-background border border-border rounded-md shadow-lg z-10 min-w-[140px]">
+                                {registryTypes.map((type) => (
+                                  <button
+                                    key={type.value}
+                                    onClick={() => {
+                                      if (file.registryType !== type.value) {
+                                        track('registry_type_changed', {
+                                          from_type: file.registryType,
+                                          to_type: type.value,
+                                        })
+                                      }
+                                      updateFile(file.id, { registryType: type.value })
+                                      setFileTypeMenuOpen(false)
+                                    }}
+                                    className={`w-full px-3 py-1.5 text-xs text-left hover:bg-accent transition-colors ${
+                                      file.registryType === type.value ? "text-foreground font-medium" : "text-muted-foreground"
+                                    }`}
+                                  >
+                                    {type.label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Language selector */}
+                        <div className="flex items-center gap-2">
+                          <InputGroupText>
+                            <Code2 className="h-4 w-4" />
+                            <span className="text-xs hidden md:inline">Language:</span>
+                          </InputGroupText>
+
+                          <div className="relative">
+                            <InputGroupButton
+                              size="xs"
+                              onClick={() => {
+                                const newState = languageMenuOpen === file.id ? false : file.id
+                                setLanguageMenuOpen(newState)
+                              }}
+                              disabled={isUploading}
+                            >
+                              {languages.find(l => l.value === file.language)?.label || languages.find(l => l.value === "plaintext")?.label}
+                              <ChevronDown className={`h-3 w-3 transition-transform ${languageMenuOpen === file.id ? "rotate-180" : ""}`} />
+                            </InputGroupButton>
+
+                            {languageMenuOpen === file.id && (
+                              <div className="absolute top-full left-0 mt-1 py-1 bg-background border border-border rounded-md shadow-lg z-10 min-w-[140px]">
+                                {languages.map((lang) => (
+                                  <button
+                                    key={lang.value}
+                                    onClick={() => {
+                                      updateFile(file.id, { language: lang.value })
+                                      setLanguageMenuOpen(false)
+                                    }}
+                                    className={`w-full px-3 py-1.5 text-xs text-left hover:bg-accent transition-colors ${
+                                      file.language === lang.value ? "text-foreground font-medium" : "text-muted-foreground"
+                                    }`}
+                                  >
+                                    {lang.label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </InputGroupAddon>
+
+                    {/* Code Textarea */}
+                    <InputGroupTextarea
+                      value={file.code}
+                      onChange={(e) => updateFile(file.id, { code: e.target.value })}
+                      placeholder="// Paste your code here..."
+                      className="flex-1 font-mono text-sm min-h-[200px]"
+                      spellCheck={false}
+                      disabled={isUploading}
+                    />
+
+                    {/* Filename Input */}
+                    <InputGroupAddon align="block-end" className="border-t">
+                      <div className="flex items-center gap-2 w-full">
+                        <InputGroupText className="text-xs">
+                          {fileTypeConfig.prefix}
+                        </InputGroupText>
+                        <InputGroupInput
+                          value={file.fileName}
+                          onChange={(e) => updateFile(file.id, { fileName: e.target.value })}
+                          placeholder={
+                            files.length > 1
+                              ? "filename.tsx (required)"
+                              : fileTypeConfig.placeholder
+                          }
+                          className="font-mono text-sm"
+                          disabled={isUploading}
+                          required={files.length > 1}
+                        />
+                      </div>
+                    </InputGroupAddon>
+                  </InputGroup>
                 </div>
-              </div>
-            </InputGroupAddon>
+              )
+            })}
+          </div>
 
-            {/* Textarea */}
-            <InputGroupTextarea
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="// Paste your code here..."
-              className="flex-1 font-mono text-sm min-h-[300px] md:min-h-[400px]"
-              spellCheck={false}
-              disabled={isUploading}
-            />
-
-            {/* Bottom Controls - Type Selector */}
-            <InputGroupAddon align="block-end" className="border-t">
-              <div className="flex items-center gap-2 w-full">
-                <InputGroupText className="text-xs">
-                  <Icons.shadcn className="h-4 w-4" />
-                  <span>Registry Type:</span>
-                </InputGroupText>
-
-                <div className="relative" ref={typeMenuRef}>
-                  <InputGroupButton
-                    size="xs"
-                    onClick={() => setTypeMenuOpen(!typeMenuOpen)}
+          {/* Block Name + Add File button */}
+          <div className="mt-4 flex items-center gap-2">
+            {files.length > 1 && (
+              <div className="flex-1">
+                <InputGroup>
+                  <InputGroupAddon>Block Name</InputGroupAddon>
+                  <InputGroupInput
+                    value={snippetName}
+                    onChange={(e) => setSnippetName(e.target.value)}
+                    placeholder="dashboard"
+                    className="font-mono text-sm"
                     disabled={isUploading}
-                  >
-                    {currentType.label}
-                    <ChevronDown className={`h-3 w-3 transition-transform ${typeMenuOpen ? "rotate-180" : ""}`} />
-                  </InputGroupButton>
-
-                  {typeMenuOpen && (
-                    <div className="absolute bottom-full left-0 mb-1 py-1 bg-background border border-border rounded-md shadow-lg z-10 min-w-[140px]">
-                      {registryTypes.map((type) => (
-                        <button
-                          key={type.value}
-                          onClick={() => {
-                            if (registryType !== type.value) {
-                              track('registry_type_changed', {
-                                from_type: registryType,
-                                to_type: type.value,
-                              })
-                            }
-                            setRegistryType(type.value)
-                            setTypeMenuOpen(false)
-                          }}
-                          className={`w-full px-3 py-1.5 text-xs text-left hover:bg-accent transition-colors ${
-                            registryType === type.value ? "text-foreground font-medium" : "text-muted-foreground"
-                          }`}
-                        >
-                          {type.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <InputGroupText className="text-xs text-muted-foreground/60">
-                  {currentType.prefix}
-                </InputGroupText>
+                    required
+                  />
+                </InputGroup>
               </div>
-            </InputGroupAddon>
-          </InputGroup>
-
-          {/* Path Input - Outside InputGroup */}
-          <div className="mt-3 flex flex-col md:flex-row gap-2">
-            <InputGroup className="flex-1">
-              <InputGroupAddon>
-                {currentType.prefix}
-              </InputGroupAddon>
-              <InputGroupInput
-                value={fileName}
-                onChange={(e) => {
-                  const newValue = e.target.value
-                  setFileName(newValue)
-                  // Real-time validation
-                  if (newValue.trim()) {
-                    const finalFileName = newValue.trim()
-                    const fullPath = registryType === "file"
-                      ? finalFileName
-                      : `${currentType.prefix}${finalFileName}`
-                    const target = registryType === "file" ? `~/${finalFileName}` : null
-
-                    const isValid = validatePath(finalFileName) &&
-                                    validatePath(fullPath) &&
-                                    (target ? validatePath(target) : true)
-
-                    setIsPathInvalid(!isValid)
-                  } else {
-                    setIsPathInvalid(false)
+            )}
+            {hasDraft && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  // TODO: Add a confirmation dialog before shadcn kills me
+                  if (confirm("Clear draft? This will reset all fields.")) {
+                    clearDraft()
+                    setDraftData({
+                      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "file" }],
+                      snippetName: ""
+                    })
+                    track('draft_cleared', { file_count: files.length })
                   }
                 }}
-                placeholder={currentType.placeholder}
-                className="h-9 font-mono text-sm"
-                aria-invalid={isPathInvalid}
                 disabled={isUploading}
-              />
-            </InputGroup>
+                className={files.length === 1 ? "ml-auto" : ""}
+              >
+                Clear Draft
+              </Button>
+            )}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={addFile}
+              disabled={isUploading}
+              className={`hover:text-muted-foreground ${files.length === 1 && !hasDraft ? "ml-auto" : ""}`}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add File
+            </Button>
+          </div>
 
+          {/* Create Button */}
+          <div className="mt-4">
             <Button
               onClick={handleCreate}
-              disabled={!code.trim() || isUploading || isPathInvalid}
-              className="w-full md:w-auto group hover:bg-primary"
+              disabled={isUploading || !isFormValid()}
+              className="w-full group hover:bg-primary"
             >
               {isUploading ? (
                 <>
@@ -380,7 +576,7 @@ export function RegistryPastebin() {
                 </>
               ) : (
                 <>
-                  Create
+                  {files.length > 1 ? `Create Snippet (${files.length} files)` : 'Create Snippet'}
                   <Kbd className="bg-primary text-primary-foreground group-hover:bg-primary/90">⏎</Kbd>
                 </>
               )}

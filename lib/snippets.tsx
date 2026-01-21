@@ -3,14 +3,22 @@ import { head, BlobNotFoundError } from '@vercel/blob'
 import { validateRegistryJson } from './validation'
 
 // Types for registry snippets
+export interface SnippetFile {
+  path: string
+  content: string
+  target: string
+  language: string
+  type: "file" | "component" | "hook" | "lib"
+}
+
 export interface Snippet {
   id: string
   name: string
-  type: "file" | "component" | "hook" | "lib"
-  target: string
-  content: string
+  type: "file" | "component" | "hook" | "lib" | "block"
+  files: SnippetFile[]
   meta: {
-    language: string
+    primaryLanguage: string
+    fileCount: number
   }
 }
 
@@ -43,20 +51,30 @@ export const getSnippet = cache(async (id: string): Promise<Snippet | null> => {
       return null
     }
     
-    // Map Registry JSON to Snippet
-    const file = json.files[0]
-    const target = file.target || file.path
-    const language = inferLanguage(target)
+    // Map Registry JSON to Snippet (support multi-file)
     const type = mapRegistryType(json.type)
-    
+    const files: SnippetFile[] = json.files.map((file: any) => {
+      const target = file.target || file.path
+      const language = inferLanguage(target)
+      const fileType = mapRegistryType(file.type)
+
+      return {
+        path: file.path,
+        content: file.content,
+        target,
+        language,
+        type: fileType,
+      }
+    })
+
     return {
       id,
       name: json.name,
       type,
-      target,
-      content: file.content,
+      files,
       meta: {
-        language,
+        primaryLanguage: files[0]?.language || 'text',
+        fileCount: files.length,
       },
     }
   } catch (error) {
@@ -74,6 +92,7 @@ function mapRegistryType(registryType: string): Snippet['type'] {
     'registry:component': 'component',
     'registry:hook': 'hook',
     'registry:lib': 'lib',
+    'registry:block': 'block',
   }
   return mapping[registryType] || 'file'
 }

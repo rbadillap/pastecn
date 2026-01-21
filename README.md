@@ -1,31 +1,33 @@
 # pastecn
 
-Create shareable shadcn/ui registry URLs. Paste your code, get a registry URL compatible with shadcn CLI.
+**pastebin + shadcn = pastecn**
+
+Create shareable shadcn/ui registry URLs. Paste your code, get a URL that works directly with `npx shadcn@latest add`.
 
 ![hero](app/opengraph-image.jpg)
 
-## Overview
+## Features
 
-**pastecn** converts code snippets into shadcn registry-compatible JSON endpoints. You paste code, specify the type (component, hook, lib, or file), and get a URL that works directly with `shadcn CLI`.
+- **Instant Registry URLs** - Convert any code into shadcn-compatible endpoints
+- **Multi-file Support** - Create blocks with multiple files (components + hooks + libs)
+- **Auto-save Drafts** - localStorage persistence keeps your work safe across page refreshes
+- **Multiple Types** - Support for components, hooks, libs, and arbitrary files
+- **Zero Config** - No auth, no signup, just paste and share
+- **Immutable URLs** - Once created, snippets never change (perfect for sharing)
 
-## pastebin + shadcn = pastecn
+## Quick Start
 
-1. Paste your code in the editor
-2. Select the type: component, hook, lib, or file
-3. Set the target filename/path
-4. Click Create to generate the registry URL
+1. Paste your code at [pastecn.com](https://pastecn.com)
+2. Select type (component/hook/lib/file) and set filename
+3. Click "Create Snippet" to get your registry URL
 
-### Installing a snippet
-
-After creating the snippet, you can install it using the namespace:
+### Install a snippet
 
 ```sh
+# Using namespace (shorter)
 npx shadcn@latest add @pastecn/{id}
-```
 
-Or using the full URL:
-
-```sh
+# Using full URL
 npx shadcn@latest add https://pastecn.com/r/{id}
 ```
 

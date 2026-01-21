@@ -2,18 +2,19 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Check, Copy, Terminal, Plus, Link as LinkIcon } from "lucide-react"
+import { Check, Copy, Terminal, Plus, Link as LinkIcon, FileJson } from "lucide-react"
 import { track } from "@vercel/analytics/react"
 import type { Snippet } from "@/lib/snippets"
 
 interface SnippetViewProps {
   snippet: Snippet
-  codePreview: React.ReactNode
+  codePreviews: { id: number; preview: React.ReactNode }[]
 }
 
-export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
+export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
   const [copiedCommand, setCopiedCommand] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(false)
+  const [copiedRegistryUrl, setCopiedRegistryUrl] = useState(false)
 
   const registryUrl = `https://pastecn.com/r/${snippet.id}`
   const previewUrl = `https://pastecn.com/p/${snippet.id}`
@@ -24,10 +25,11 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
     track('snippet_viewed', {
       snippet_id: snippet.id,
       snippet_type: snippet.type,
-      language: snippet.meta.language,
-      content_length: snippet.content.length,
+      language: snippet.meta.primaryLanguage,
+      content_length: snippet.files.reduce((sum, f) => sum + f.content.length, 0),
+      file_count: snippet.files.length,
     })
-  }, [snippet.id, snippet.type, snippet.meta.language, snippet.content.length])
+  }, [snippet.id, snippet.type, snippet.meta.primaryLanguage, snippet.files])
 
   const handleCopyCommand = async () => {
     await navigator.clipboard.writeText(npxCommand)
@@ -49,9 +51,19 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
     })
   }
 
+  const handleCopyRegistryUrl = async () => {
+    await navigator.clipboard.writeText(registryUrl)
+    setCopiedRegistryUrl(true)
+    setTimeout(() => setCopiedRegistryUrl(false), 3000)
+    track('registry_url_copied', {
+      snippet_id: snippet.id,
+      snippet_type: snippet.type,
+    })
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="flex-1 container mx-auto px-4 pt-6 md:pt-8 pb-8">
+      <div className="flex-1 container mx-auto px-4 pt-12 md:pt-20 pb-8">
         <div className="max-w-2xl mx-auto">
           <nav className="mb-8">
             <a
@@ -63,33 +75,94 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
             </a>
           </nav>
 
-          {/* Path del archivo */}
+          {/* Block badge */}
+          {snippet.type === 'block' && (
+            <div className="mb-2 text-center">
+              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                Registry Block
+              </span>
+            </div>
+          )}
+
+          {/* File paths */}
           <div className="mb-3 text-center">
-            <code className="font-mono text-sm text-muted-foreground">{snippet.target}</code>
+            {snippet.files.length === 1 ? (
+              <code className="font-mono text-sm text-muted-foreground">
+                {snippet.files[0].target}
+              </code>
+            ) : (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground mb-2">
+                  {snippet.files.length} files
+                </p>
+                {snippet.files.map((file, idx) => (
+                  <div key={idx} className="flex items-center justify-center gap-2">
+                    <code className="font-mono text-xs text-muted-foreground">
+                      {file.target}
+                    </code>
+                    <span className="text-xs text-primary">
+                      ({file.type})
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Code Preview */}
-          <div className="mb-6">{codePreview}</div>
-
-          {/* Preview URL */}
-          <div className="mb-4">
-            <label className="block text-xs text-muted-foreground mb-2">Preview URL</label>
-            <button
-              onClick={handleCopyUrl}
-              className="w-full flex items-center gap-3 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
-            >
-              <LinkIcon className="h-4 w-4 shrink-0 opacity-70" />
-              <code className="flex-1 font-mono text-sm truncate text-left">{previewUrl}</code>
-              {copiedUrl ? (
-                <Check className="h-4 w-4 shrink-0 text-green-400" />
-              ) : (
-                <Copy className="h-4 w-4 shrink-0 opacity-70" />
-              )}
-            </button>
-            {copiedUrl && <p className="text-xs text-muted-foreground mt-2 text-center">URL copied!</p>}
+          {/* Code Previews - render all files */}
+          <div className="space-y-4 mb-6">
+            {snippet.files.map((file, idx) => (
+              <div key={idx}>
+                {snippet.files.length > 1 && (
+                  <div className="mb-2 text-xs text-muted-foreground font-mono">
+                    {file.path}
+                  </div>
+                )}
+                {codePreviews[idx]?.preview}
+              </div>
+            ))}
           </div>
 
-          {/* NPX Command */}
+          {/* URLs Grid - Side by side on desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {/* Preview URL */}
+            <div>
+              <label className="block text-xs text-muted-foreground mb-2">Preview URL</label>
+              <button
+                onClick={handleCopyUrl}
+                className="w-full flex items-center gap-2 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
+              >
+                <LinkIcon className="h-4 w-4 shrink-0 opacity-70" />
+                <code className="flex-1 font-mono text-xs truncate text-left">{previewUrl}</code>
+                {copiedUrl ? (
+                  <Check className="h-4 w-4 shrink-0 text-green-400" />
+                ) : (
+                  <Copy className="h-4 w-4 shrink-0 opacity-70" />
+                )}
+              </button>
+              {copiedUrl && <p className="text-xs text-muted-foreground mt-1.5 text-center">Copied!</p>}
+            </div>
+
+            {/* Raw JSON URL */}
+            <div>
+              <label className="block text-xs text-muted-foreground mb-2">Raw JSON</label>
+              <button
+                onClick={handleCopyRegistryUrl}
+                className="w-full flex items-center gap-2 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
+              >
+                <FileJson className="h-4 w-4 shrink-0 opacity-70" />
+                <code className="flex-1 font-mono text-xs truncate text-left">{registryUrl}</code>
+                {copiedRegistryUrl ? (
+                  <Check className="h-4 w-4 shrink-0 text-green-400" />
+                ) : (
+                  <Copy className="h-4 w-4 shrink-0 opacity-70" />
+                )}
+              </button>
+              {copiedRegistryUrl && <p className="text-xs text-muted-foreground mt-1.5 text-center">Copied!</p>}
+            </div>
+          </div>
+
+          {/* NPX Command - Full width, highlighted */}
           <div>
             <label className="block text-xs text-muted-foreground mb-2">Install Command</label>
             <button
