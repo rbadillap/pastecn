@@ -45,29 +45,28 @@ export async function GET(
   }
 
   // Convert Snippet back to Registry JSON format for shadcn CLI
-  // For files, snippet.target contains "~/filename", but path should be just "filename"
-  // For other types, snippet.target contains the full path (e.g., "components/ui/file.tsx")
-  const path = snippet.type === "file" && snippet.target.startsWith("~/")
-    ? snippet.target.slice(2) // Remove "~/" prefix
-    : snippet.target
-  
   const registryJson = {
     $schema: "https://ui.shadcn.com/schema/registry-item.json",
     name: snippet.name,
     type: `registry:${snippet.type}`,
-    files: [
-      {
+    files: snippet.files.map((file) => {
+      const path = file.type === "file" && file.target.startsWith("~/")
+        ? file.target.slice(2)
+        : file.path
+
+      return {
         path,
-        type: `registry:${snippet.type}`,
-        content: snippet.content,
-        ...(snippet.type === "file" && { target: snippet.target }),
-      },
-    ],
+        type: `registry:${file.type}`,
+        content: file.content,
+        ...(file.type === "file" && { target: file.target }),
+      }
+    }),
   }
 
   // Track registry access
   track('registry_accessed', {
     snippet_id: id,
+    file_count: snippet.files.length,
     user_agent: request.headers.get('user-agent') || 'unknown',
     referer: request.headers.get('referer') || 'direct',
   })

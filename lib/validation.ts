@@ -60,7 +60,7 @@ export function validateRegistryJson(json: unknown): boolean {
   }
   
   // Check type
-  const validTypes = ['registry:file', 'registry:component', 'registry:hook', 'registry:lib']
+  const validTypes = ['registry:file', 'registry:component', 'registry:hook', 'registry:lib', 'registry:block']
   if (typeof obj.type !== 'string' || !validTypes.includes(obj.type)) {
     return false
   }

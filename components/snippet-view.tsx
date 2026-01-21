@@ -8,10 +8,10 @@ import type { Snippet } from "@/lib/snippets"
 
 interface SnippetViewProps {
   snippet: Snippet
-  codePreview: React.ReactNode
+  codePreviews: { id: number; preview: React.ReactNode }[]
 }
 
-export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
+export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
   const [copiedCommand, setCopiedCommand] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(false)
 
@@ -24,10 +24,11 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
     track('snippet_viewed', {
       snippet_id: snippet.id,
       snippet_type: snippet.type,
-      language: snippet.meta.language,
-      content_length: snippet.content.length,
+      language: snippet.meta.primaryLanguage,
+      content_length: snippet.files.reduce((sum, f) => sum + f.content.length, 0),
+      file_count: snippet.files.length,
     })
-  }, [snippet.id, snippet.type, snippet.meta.language, snippet.content.length])
+  }, [snippet.id, snippet.type, snippet.meta.primaryLanguage, snippet.files])
 
   const handleCopyCommand = async () => {
     await navigator.clipboard.writeText(npxCommand)
@@ -63,13 +64,53 @@ export function SnippetView({ snippet, codePreview }: SnippetViewProps) {
             </a>
           </nav>
 
-          {/* Path del archivo */}
+          {/* Block badge */}
+          {snippet.type === 'block' && (
+            <div className="mb-2 text-center">
+              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                Registry Block
+              </span>
+            </div>
+          )}
+
+          {/* File paths */}
           <div className="mb-3 text-center">
-            <code className="font-mono text-sm text-muted-foreground">{snippet.target}</code>
+            {snippet.files.length === 1 ? (
+              <code className="font-mono text-sm text-muted-foreground">
+                {snippet.files[0].target}
+              </code>
+            ) : (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground mb-2">
+                  {snippet.files.length} files
+                </p>
+                {snippet.files.map((file, idx) => (
+                  <div key={idx} className="flex items-center justify-center gap-2">
+                    <code className="font-mono text-xs text-muted-foreground">
+                      {file.target}
+                    </code>
+                    <span className="text-xs text-primary">
+                      ({file.type})
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Code Preview */}
-          <div className="mb-6">{codePreview}</div>
+          {/* Code Previews - render all files */}
+          <div className="space-y-4 mb-6">
+            {snippet.files.map((file, idx) => (
+              <div key={idx}>
+                {snippet.files.length > 1 && (
+                  <div className="mb-2 text-xs text-muted-foreground font-mono">
+                    {file.path}
+                  </div>
+                )}
+                {codePreviews[idx]?.preview}
+              </div>
+            ))}
+          </div>
 
           {/* Preview URL */}
           <div className="mb-4">
