@@ -63,7 +63,7 @@ export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="flex-1 container mx-auto px-4 pt-6 md:pt-8 pb-8">
+      <div className="flex-1 container mx-auto px-4 pt-12 md:pt-20 pb-8">
         <div className="max-w-2xl mx-auto">
           <nav className="mb-8">
             <a
