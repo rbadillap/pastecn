@@ -108,7 +108,7 @@ export function RegistryPastebin() {
     },
     {
       key: "pastecn:draft",
-      version: 1,
+      version: 2, // Incremented to clear old drafts with incorrect defaults
       debounceMs: 500,
       maxAge: 7 * 24 * 60 * 60 * 1000  // 7 days
     }
