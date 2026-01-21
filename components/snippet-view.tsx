@@ -2,9 +2,10 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Check, Copy, Terminal, Plus, Link as LinkIcon, FileJson } from "lucide-react"
+import { Check, Copy, Plus, Link as LinkIcon, FileJson } from "lucide-react"
 import { track } from "@vercel/analytics/react"
 import type { Snippet } from "@/lib/snippets"
+import { TerminalCodeRoot, TerminalCodeHeader, TerminalCodeCommand } from "@/components/terminal-code"
 
 interface SnippetViewProps {
   snippet: Snippet
@@ -123,24 +124,52 @@ export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
             ))}
           </div>
 
+          {/* Install Command - Primary action */}
+          <div className="mb-6">
+            <label className="block text-xs text-muted-foreground mb-2">Install Command</label>
+            <button
+              onClick={handleCopyCommand}
+              className="w-full group relative hover:opacity-90 transition-opacity"
+            >
+              <TerminalCodeRoot className="relative">
+                <TerminalCodeHeader title="terminal" />
+                <div className="flex items-center gap-2">
+                  <TerminalCodeCommand>{npxCommand}</TerminalCodeCommand>
+                  {copiedCommand ? (
+                    <Check className="h-4 w-4 shrink-0 text-green-400 absolute right-4 top-[52px]" />
+                  ) : (
+                    <Copy className="h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity absolute right-4 top-[52px]" />
+                  )}
+                </div>
+              </TerminalCodeRoot>
+            </button>
+          </div>
+
           {/* URLs Grid - Side by side on desktop */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Preview URL */}
             <div>
               <label className="block text-xs text-muted-foreground mb-2">Preview URL</label>
               <button
                 onClick={handleCopyUrl}
-                className="w-full flex items-center gap-2 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
+                className="w-full group relative hover:opacity-90 transition-opacity"
               >
-                <LinkIcon className="h-4 w-4 shrink-0 opacity-70" />
-                <code className="flex-1 font-mono text-xs truncate text-left">{previewUrl}</code>
-                {copiedUrl ? (
-                  <Check className="h-4 w-4 shrink-0 text-green-400" />
-                ) : (
-                  <Copy className="h-4 w-4 shrink-0 opacity-70" />
-                )}
+                <TerminalCodeRoot className="bg-muted border-border relative">
+                  <TerminalCodeHeader title="preview">
+                    <LinkIcon className="h-3 w-3 ml-auto opacity-50" />
+                  </TerminalCodeHeader>
+                  <div className="flex items-center gap-2">
+                    <TerminalCodeCommand showPrompt={false} className="text-foreground truncate">
+                      {previewUrl}
+                    </TerminalCodeCommand>
+                    {copiedUrl ? (
+                      <Check className="h-4 w-4 shrink-0 text-green-600 absolute right-4 top-[52px]" />
+                    ) : (
+                      <Copy className="h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity absolute right-4 top-[52px]" />
+                    )}
+                  </div>
+                </TerminalCodeRoot>
               </button>
-              {copiedUrl && <p className="text-xs text-muted-foreground mt-1.5 text-center">Copied!</p>}
             </div>
 
             {/* Raw JSON URL */}
@@ -148,36 +177,25 @@ export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
               <label className="block text-xs text-muted-foreground mb-2">Raw JSON</label>
               <button
                 onClick={handleCopyRegistryUrl}
-                className="w-full flex items-center gap-2 bg-muted border border-border rounded-lg p-3 hover:bg-muted/80 transition-colors cursor-pointer"
+                className="w-full group relative hover:opacity-90 transition-opacity"
               >
-                <FileJson className="h-4 w-4 shrink-0 opacity-70" />
-                <code className="flex-1 font-mono text-xs truncate text-left">{registryUrl}</code>
-                {copiedRegistryUrl ? (
-                  <Check className="h-4 w-4 shrink-0 text-green-400" />
-                ) : (
-                  <Copy className="h-4 w-4 shrink-0 opacity-70" />
-                )}
+                <TerminalCodeRoot className="bg-muted border-border relative">
+                  <TerminalCodeHeader title="registry">
+                    <FileJson className="h-3 w-3 ml-auto opacity-50" />
+                  </TerminalCodeHeader>
+                  <div className="flex items-center gap-2">
+                    <TerminalCodeCommand showPrompt={false} className="text-foreground truncate">
+                      {registryUrl}
+                    </TerminalCodeCommand>
+                    {copiedRegistryUrl ? (
+                      <Check className="h-4 w-4 shrink-0 text-green-600 absolute right-4 top-[52px]" />
+                    ) : (
+                      <Copy className="h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity absolute right-4 top-[52px]" />
+                    )}
+                  </div>
+                </TerminalCodeRoot>
               </button>
-              {copiedRegistryUrl && <p className="text-xs text-muted-foreground mt-1.5 text-center">Copied!</p>}
             </div>
-          </div>
-
-          {/* NPX Command - Full width, highlighted */}
-          <div>
-            <label className="block text-xs text-muted-foreground mb-2">Install Command</label>
-            <button
-              onClick={handleCopyCommand}
-              className="w-full flex items-center gap-3 bg-foreground text-background border border-border rounded-lg p-4 hover:bg-foreground/90 transition-colors cursor-pointer"
-            >
-              <Terminal className="h-4 w-4 shrink-0 opacity-70" />
-              <code className="flex-1 font-mono text-sm truncate text-left">{npxCommand}</code>
-              {copiedCommand ? (
-                <Check className="h-4 w-4 shrink-0 text-green-400" />
-              ) : (
-                <Copy className="h-4 w-4 shrink-0 opacity-70" />
-              )}
-            </button>
-            {copiedCommand && <p className="text-xs text-muted-foreground mt-2 text-center">Copied. Ready to share.</p>}
           </div>
         </div>
       </div>
