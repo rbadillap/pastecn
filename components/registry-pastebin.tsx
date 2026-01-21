@@ -611,7 +611,7 @@ export function RegistryPastebin() {
             <Link href="/use-cases/shadcn-registry-urls" className="text-muted-foreground hover:text-foreground transition-colors">
               Use Case
             </Link>
-            <Link href="/blog/how-to-create-shadcn-registry-url" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
               Blog
             </Link>
           </nav>
