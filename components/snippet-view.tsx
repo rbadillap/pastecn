@@ -4,7 +4,8 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Check, Copy, Plus, Link as LinkIcon, FileJson, Terminal, ChevronDown } from "lucide-react"
 import { track } from "@vercel/analytics/react"
-import type { Snippet } from "@/lib/snippets"
+import type { Snippet, SnippetMetadata } from "@/lib/snippets"
+import { LockedCodeContainer } from "@/components/locked-code-container"
 import { TerminalCodeRoot, TerminalCodeHeader, TerminalCodeCommand } from "@/components/terminal-code"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
@@ -15,17 +16,20 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 interface SnippetViewProps {
-  snippet: Snippet
+  snippet: Snippet | SnippetMetadata
   codePreviews: { id: number; preview: React.ReactNode }[]
+  isLocked: boolean
 }
 
 type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun'
 
-export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
+export function SnippetView({ snippet, codePreviews, isLocked }: SnippetViewProps) {
   const [copiedCommand, setCopiedCommand] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(false)
   const [copiedRegistryUrl, setCopiedRegistryUrl] = useState(false)
   const [packageManager, setPackageManager] = useState<PackageManager>('npm')
+  const [isUnlocked, setIsUnlocked] = useState(!isLocked)
+  const [fileContents, setFileContents] = useState<Record<string, string>>({})
 
   const registryUrl = `https://pastecn.com/r/${snippet.id}`
   const previewUrl = `https://pastecn.com/p/${snippet.id}`
@@ -42,16 +46,32 @@ export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
 
   const installCommand = getInstallCommand(packageManager)
 
+  const handleUnlockSuccess = async () => {
+    // Fetch content from API
+    const response = await fetch(`/api/snippets/${snippet.id}/content`)
+    if (response.ok) {
+      const data = await response.json()
+      const contentsMap = data.content.reduce((acc: Record<string, string>, file: { path: string; content: string }) => {
+        acc[file.path] = file.content
+        return acc
+      }, {})
+      setFileContents(contentsMap)
+      setIsUnlocked(true)
+    }
+  }
+
   // Track snippet view on mount
   useEffect(() => {
     track('snippet_viewed', {
       snippet_id: snippet.id,
       snippet_type: snippet.type,
       language: snippet.meta.primaryLanguage,
-      content_length: snippet.files.reduce((sum, f) => sum + f.content.length, 0),
+      content_length: isUnlocked && 'files' in snippet && snippet.files.every((f: any) => 'content' in f)
+        ? snippet.files.reduce((sum: number, f: any) => sum + f.content.length, 0)
+        : 0,
       file_count: snippet.files.length,
     })
-  }, [snippet.id, snippet.type, snippet.meta.primaryLanguage, snippet.files])
+  }, [snippet.id, snippet.type, snippet.meta.primaryLanguage, snippet.files, isUnlocked])
 
   const handleCopyCommand = async () => {
     await navigator.clipboard.writeText(installCommand)
@@ -102,9 +122,23 @@ export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
           {snippet.files.length === 1 ? (
             <TerminalCodeRoot className="mb-6 bg-muted border-border">
               <TerminalCodeHeader title={snippet.files[0].path} />
-              <div className="[&_>div]:!border-none [&_>div]:!rounded-none [&_pre]:!bg-transparent">
-                {codePreviews[0]?.preview}
-              </div>
+              {isUnlocked ? (
+                <div className="[&_>div]:!border-none [&_>div]:!rounded-none [&_pre]:!bg-transparent">
+                  {codePreviews[0]?.preview || (
+                    <div className="overflow-hidden rounded-lg border border-border bg-background">
+                      <pre className="p-4 text-sm overflow-x-auto">
+                        <code>{fileContents[snippet.files[0].path] || ''}</code>
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <LockedCodeContainer
+                  snippetId={snippet.id}
+                  fileName={snippet.files[0].path}
+                  onUnlockSuccess={handleUnlockSuccess}
+                />
+              )}
             </TerminalCodeRoot>
           ) : (
             <TerminalCodeRoot className="mb-6 bg-muted border-border">
@@ -127,9 +161,23 @@ export function SnippetView({ snippet, codePreviews }: SnippetViewProps) {
                     <div className="mb-2 text-xs text-muted-foreground font-mono">
                       {file.path}
                     </div>
-                    <div className="[&_>div]:!border-none [&_>div]:!rounded-none [&_pre]:!bg-transparent">
-                      {codePreviews[idx]?.preview}
-                    </div>
+                    {isUnlocked ? (
+                      <div className="[&_>div]:!border-none [&_>div]:!rounded-none [&_pre]:!bg-transparent">
+                        {codePreviews[idx]?.preview || (
+                          <div className="overflow-hidden rounded-lg border border-border bg-background">
+                            <pre className="p-4 text-sm overflow-x-auto">
+                              <code>{fileContents[file.path] || ''}</code>
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <LockedCodeContainer
+                        snippetId={snippet.id}
+                        fileName={file.path}
+                        onUnlockSuccess={handleUnlockSuccess}
+                      />
+                    )}
                   </TabsContent>
                 ))}
               </Tabs>

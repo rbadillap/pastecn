@@ -9,6 +9,7 @@ Create shareable shadcn/ui registry URLs. Paste your code, get a URL that works 
 ## Features
 
 - **Instant Registry URLs** - Convert any code into shadcn-compatible endpoints
+- **Password Protection** - Optional password protection for private code sharing
 - **Multi-file Support** - Create blocks with multiple files (components + hooks + libs)
 - **Auto-save Drafts** - localStorage persistence keeps your work safe across page refreshes
 - **Multiple Types** - Support for components, hooks, libs, and arbitrary files
@@ -30,6 +31,14 @@ npx shadcn@latest add @pastecn/{id}
 # Using full URL
 npx shadcn@latest add https://pastecn.com/r/{id}
 ```
+
+**Learn more:**
+- [Password-Protected Snippets](https://pastecn.com/blog/password-protected-snippets) - Share code with selective access
+- [Understanding Registry Blocks](https://pastecn.com/blog/understanding-shadcn-registry-blocks) - Multi-file components explained
+
+## Self-Hosting
+
+Want to run your own instance? See [docs/VERCEL.md](docs/VERCEL.md) for deployment instructions.
 
 ## Contributing
 

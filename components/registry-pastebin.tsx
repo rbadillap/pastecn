@@ -3,13 +3,17 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronDown, Loader2, Code2, Plus } from "lucide-react"
+import { ChevronDown, Loader2, Code2, Plus, Lock, RefreshCw, Copy, Check } from "lucide-react"
 import { upload } from "@vercel/blob/client"
 import { nanoid } from "nanoid"
 import { track } from "@vercel/analytics/react"
 import { validatePath } from "@/lib/validation"
+import { createSnippetPassword } from "@/lib/password"
 import { Icons } from "@/components/icon"
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Input } from "@/components/ui/input"
 import {
   InputGroup,
   InputGroupAddon,
@@ -136,6 +140,11 @@ export function RegistryPastebin() {
   const [error, setError] = useState<string | null>(null)
   const [showClearDraftDialog, setShowClearDraftDialog] = useState(false)
 
+  // Password protection state
+  const [passwordProtected, setPasswordProtected] = useState(false)
+  const [password, setPassword] = useState('')
+  const [passwordCopied, setPasswordCopied] = useState(false)
+
   // Show toast when draft is restored
   useEffect(() => {
     if (hasDraft) {
@@ -151,6 +160,13 @@ export function RegistryPastebin() {
       })
     }
   }, [hasDraft])
+
+  // Auto-generate password when protection is enabled
+  useEffect(() => {
+    if (passwordProtected && !password) {
+      setPassword(createSnippetPassword())
+    }
+  }, [passwordProtected, password])
 
   const addFile = () => {
     const newFiles: FileInput[] = [...files, { id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "file" }]
@@ -284,13 +300,23 @@ export function RegistryPastebin() {
         // Build registry JSON with current ID
         const registryJson = buildRegistryJson(id)
 
-        const blob = await upload(
-          `snippets/${id}.json`,
-          new File([JSON.stringify(registryJson, null, 2)], `snippets/${id}.json`, {
-            type: 'application/json'
+        // Use new upload API that supports password hashing
+        const response = await fetch('/api/snippets/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id,
+            registryJson,
+            password: passwordProtected ? password : undefined,
           }),
-          { access: 'public', handleUploadUrl: '/api/snippets/upload' }
-        )
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Upload failed')
+        }
+
+        const { blob: blobData, password: returnedPassword } = await response.json()
 
         // Collect analytics data
         const fileTypes = [...new Set(files.map(f => f.registryType))]
@@ -303,6 +329,7 @@ export function RegistryPastebin() {
           code_length: files.reduce((sum, f) => sum + f.code.length, 0),
           file_count: files.length,
           is_multi_file: isMultiFile,
+          is_protected: passwordProtected,
           // Multi-file specific analytics
           file_types: JSON.stringify(fileTypes),
           file_types_count: fileTypes.length,
@@ -311,6 +338,15 @@ export function RegistryPastebin() {
           has_custom_block_name: isMultiFile && !!snippetName.trim(),
           all_files_have_custom_names: files.every(f => !!f.fileName.trim()),
         })
+
+        // Show password toast if protected
+        if (passwordProtected && returnedPassword) {
+          toast({
+            title: "Password-protected snippet created",
+            description: "Save your password - you'll need it to view the snippet.",
+            duration: 6000,
+          })
+        }
 
         // Clear draft after successful upload
         clearDraft()
@@ -552,6 +588,80 @@ export function RegistryPastebin() {
               <Plus className="h-4 w-4 mr-1" />
               Add File
             </Button>
+          </div>
+
+          {/* Password Protection */}
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="password-protection" className="text-sm font-medium">
+                  Password Protection (Optional)
+                </Label>
+              </div>
+              <Switch
+                id="password-protection"
+                checked={passwordProtected}
+                onCheckedChange={(checked) => {
+                  setPasswordProtected(checked)
+                  track('password_protection_toggled', {
+                    enabled: checked,
+                  })
+                }}
+                disabled={isUploading}
+              />
+            </div>
+
+            {passwordProtected && (
+              <div className="space-y-2 p-3 border rounded-md bg-amber-50 dark:bg-amber-950/20">
+                <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                  Save this password - you&apos;ll need it to view the snippet
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    value={password}
+                    readOnly
+                    className="font-mono text-sm"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      setPassword(createSnippetPassword())
+                      setPasswordCopied(false)
+                      track('password_regenerated')
+                    }}
+                    disabled={isUploading}
+                    title="Generate new password"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      navigator.clipboard.writeText(password)
+                      setPasswordCopied(true)
+                      setTimeout(() => setPasswordCopied(false), 2000)
+                      toast({
+                        title: "Password copied",
+                        description: "Keep it safe - you'll need it to access the snippet.",
+                        duration: 3000,
+                      })
+                      track('password_copied')
+                    }}
+                    disabled={isUploading}
+                    title="Copy password"
+                  >
+                    {passwordCopied ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Create Button */}
