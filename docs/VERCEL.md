@@ -72,63 +72,37 @@ Vercel Blob is automatically set up when you enable it in your project.
 
 **Required for password protection feature**
 
-### ✅ Pre-configured via vercel.json
-
-The firewall configuration is already included in `vercel.json` and will be automatically applied when you deploy to Vercel.
-
-**Configuration included:**
-```json
-{
-  "firewall": {
-    "rules": [
-      {
-        "id": "unlock-snippet-rate-limit",
-        "description": "Rate limit password unlock attempts",
-        "action": {
-          "type": "rate-limit",
-          "limit": 5,
-          "window": "15m"
-        },
-        "active": true,
-        "conditionGroup": [
-          {
-            "conditions": [
-              {
-                "type": "path",
-                "op": "pre",
-                "value": "/api/snippets/"
-              },
-              {
-                "type": "path",
-                "op": "suf",
-                "value": "/unlock"
-              },
-              {
-                "type": "method",
-                "op": "eq",
-                "value": "POST"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
 ### Setup Steps
 
-**All you need to do:**
+**⚠️ Note:** Firewall configuration is only available through the Vercel Dashboard, not via `vercel.json`.
 
-1. **Enable Firewall in Vercel Dashboard:**
+1. **Navigate to Security:**
    - Project Settings → Security → Firewall
+
+2. **Enable Firewall:**
    - Toggle "Enable Firewall"
    - Select pricing tier (requires Pro plan or higher)
 
-2. **Deploy:**
-   - The rules in `vercel.json` will be automatically applied
-   - No manual rule configuration needed! 🎉
+3. **Create Rate Limit Rule:**
+
+   Click "Add Rule" and configure:
+
+   **Rule Name:** `unlock-snippet-rate-limit`
+
+   **Rule Type:** Rate Limit
+
+   **Configuration:**
+   - **Action:** Rate Limit
+   - **Limit:** 5 requests
+   - **Window:** 15 minutes
+   - **Scope:** Per IP address
+
+   **Path Conditions:**
+   - Path starts with: `/api/snippets/`
+   - Path ends with: `/unlock`
+   - Method: `POST`
+
+4. **Save Rule**
 
 **Note:** The Firewall feature requires Vercel Pro plan or higher.
 
@@ -241,7 +215,8 @@ Before deploying to production, verify:
 - [ ] Optional variables configured as needed
 
 ### Security
-- [ ] Vercel Firewall enabled (rules auto-applied from vercel.json)
+- [ ] Vercel Firewall enabled
+- [ ] Rate limiting rule created for `unlock-snippet`
 - [ ] Bot Protection enabled (optional but recommended)
 - [ ] Rate limit tested on preview deployment
 
