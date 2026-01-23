@@ -1,0 +1,41 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "firewall": {
+    "rules": [
+      {
+        "id": "unlock-snippet-rate-limit",
+        "description": "Rate limit password unlock attempts to prevent brute force attacks. Limits POST requests to /api/snippets/[id]/unlock to 5 attempts per 15 minutes per IP address.",
+        "action": {
+          "type": "rate-limit",
+          "limit": 5,
+          "window": "15m"
+        },
+        "active": true,
+        "conditionGroup": [
+          {
+            "conditions": [
+              {
+                "type": "path",
+                "op": "pre",
+                "value": "/api/snippets/",
+                "neg": false
+              },
+              {
+                "type": "path",
+                "op": "suf",
+                "value": "/unlock",
+                "neg": false
+              },
+              {
+                "type": "method",
+                "op": "eq",
+                "value": "POST",
+                "neg": false
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
