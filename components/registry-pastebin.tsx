@@ -21,10 +21,11 @@ import {
 import { Kbd } from "./ui/kbd"
 import { useLocalStorageDraft } from "@/hooks/use-local-storage-draft"
 import { toast } from "@/hooks/use-toast"
+import { ClearDraftDialog } from "./clear-draft-dialog"
 
-type RegistryType = "file" | "component" | "hook" | "lib"
+export type RegistryType = "file" | "component" | "hook" | "lib"
 
-type LanguageType =
+export type LanguageType =
   | "typescript"
   | "javascript"
   | "tsx"
@@ -133,6 +134,7 @@ export function RegistryPastebin() {
   const [fileTypeMenuOpen, setFileTypeMenuOpen] = useState<string | false>(false)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showClearDraftDialog, setShowClearDraftDialog] = useState(false)
 
   // Show toast when draft is restored
   useEffect(() => {
@@ -533,17 +535,7 @@ export function RegistryPastebin() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  // TODO: Add a confirmation dialog before shadcn kills me
-                  if (confirm("Clear draft? This will reset all fields.")) {
-                    clearDraft()
-                    setDraftData({
-                      files: [{ id: nanoid(), code: "", fileName: "", language: "plaintext", registryType: "file" }],
-                      snippetName: ""
-                    })
-                    track('draft_cleared', { file_count: files.length })
-                  }
-                }}
+                onClick={() => setShowClearDraftDialog(true)}
                 disabled={isUploading}
                 className={files.length === 1 ? "ml-auto" : ""}
               >
@@ -617,6 +609,15 @@ export function RegistryPastebin() {
           </nav>
         </div>
       </footer>
+
+      {/* Clear Draft Confirmation Dialog */}
+      <ClearDraftDialog
+        open={showClearDraftDialog}
+        onOpenChange={setShowClearDraftDialog}
+        fileCount={files.length}
+        onClearDraft={clearDraft}
+        onResetDraftData={setDraftData}
+      />
     </div>
   )
 }
