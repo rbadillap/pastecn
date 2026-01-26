@@ -1,10 +1,16 @@
 # pastecn
 
+![hero](app/opengraph-image.jpg)
+
 **pastebin + shadcn = pastecn**
 
 Create shareable shadcn/ui registry URLs. Paste your code, get a URL that works directly with `npx shadcn@latest add`.
 
-![hero](app/opengraph-image.jpg)
+<p align="center">
+  <a href="https://pastecn.com/docs/api">API</a> ‎｜
+  <a href="https://pastecn.com/blog">Blog</a> ｜
+  <a href="https://pastecn.com/use-cases/shadcn-registry-urls">Use Cases</a>
+</p>
 
 ## Features
 
