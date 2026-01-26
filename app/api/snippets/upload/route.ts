@@ -1,49 +1,19 @@
-import { put, head, BlobNotFoundError } from '@vercel/blob'
+import { put } from '@vercel/blob'
 import { NextResponse } from 'next/server'
 import { track } from '@vercel/analytics/server'
-import { validateSnippetId } from '@/lib/validation'
 import { hashPassword } from '@/lib/password'
-import type { RegistryItemJson } from '@/lib/snippets'
+import { generateSnippetId, type RegistryItemJson } from '@/lib/snippets'
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { id, registryJson, password } = body as {
-      id: string
+    const { registryJson, password } = body as {
       registryJson: RegistryItemJson
       password?: string
     }
 
-    // Validate ID format
-    if (!validateSnippetId(id)) {
-      track('upload_error', {
-        error_type: 'invalid_id',
-        status_code: 400,
-      })
-      return NextResponse.json(
-        { error: 'Invalid snippet ID format' },
-        { status: 400 }
-      )
-    }
-
-    // Check if blob already exists
-    try {
-      await head(`snippets/${id}.json`)
-      // Blob exists - return 409
-      track('upload_error', {
-        error_type: 'id_collision',
-        status_code: 409,
-      })
-      return NextResponse.json(
-        { error: 'ID collision - blob already exists' },
-        { status: 409 }
-      )
-    } catch (error) {
-      if (!(error instanceof BlobNotFoundError)) {
-        throw error // Re-throw unexpected errors
-      }
-      // Blob doesn't exist - proceed with upload
-    }
+    // Always generate ID server-side (no custom IDs allowed)
+    const id = generateSnippetId()
 
     // Hash password if provided and add to meta
     if (password) {
@@ -62,13 +32,14 @@ export async function POST(request: Request) {
     })
 
     track('snippet_created', {
-      snippet_id: id,
+      source: 'web',
       file_count: registryJson.files.length,
       is_protected: !!password,
     })
 
-    // Return response with blob info and plaintext password (only once)
+    // Return response with generated ID and blob info
     return NextResponse.json({
+      id, // Server-generated ID for client redirect
       blob: {
         url: blob.url,
         pathname: blob.pathname,
@@ -81,7 +52,8 @@ export async function POST(request: Request) {
       const message = error.message.toLowerCase()
 
       if (message.includes('size') || message.includes('too large')) {
-        track('upload_error', {
+        track('snippet_create_error', {
+          source: 'web',
           error_type: 'size_limit',
           status_code: 413,
         })
@@ -92,7 +64,8 @@ export async function POST(request: Request) {
       }
 
       if (message.includes('content type') || message.includes('type')) {
-        track('upload_error', {
+        track('snippet_create_error', {
+          source: 'web',
           error_type: 'content_type',
           status_code: 415,
         })
@@ -103,7 +76,8 @@ export async function POST(request: Request) {
       }
 
       if (message.includes('permission') || message.includes('forbidden')) {
-        track('upload_error', {
+        track('snippet_create_error', {
+          source: 'web',
           error_type: 'permission',
           status_code: 403,
         })
@@ -114,7 +88,8 @@ export async function POST(request: Request) {
       }
     }
 
-    track('upload_error', {
+    track('snippet_create_error', {
+      source: 'web',
       error_type: 'unknown',
       status_code: 400,
     })

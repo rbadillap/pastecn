@@ -63,7 +63,7 @@ export function SnippetView({ snippet, codePreviews, isLocked }: SnippetViewProp
   // Track snippet view on mount
   useEffect(() => {
     track('snippet_viewed', {
-      snippet_id: snippet.id,
+      source: 'web',
       snippet_type: snippet.type,
       language: snippet.meta.primaryLanguage,
       content_length: isUnlocked && 'files' in snippet && snippet.files.every((f: any) => 'content' in f)
@@ -71,14 +71,14 @@ export function SnippetView({ snippet, codePreviews, isLocked }: SnippetViewProp
         : 0,
       file_count: snippet.files.length,
     })
-  }, [snippet.id, snippet.type, snippet.meta.primaryLanguage, snippet.files, isUnlocked])
+  }, [snippet.type, snippet.meta.primaryLanguage, snippet.files, isUnlocked])
 
   const handleCopyCommand = async () => {
     await navigator.clipboard.writeText(installCommand)
     setCopiedCommand(true)
     setTimeout(() => setCopiedCommand(false), 3000)
     track('command_copied', {
-      snippet_id: snippet.id,
+      source: 'web',
       snippet_type: snippet.type,
       package_manager: packageManager,
     })
@@ -89,7 +89,7 @@ export function SnippetView({ snippet, codePreviews, isLocked }: SnippetViewProp
     setCopiedUrl(true)
     setTimeout(() => setCopiedUrl(false), 3000)
     track('preview_url_copied', {
-      snippet_id: snippet.id,
+      source: 'web',
       snippet_type: snippet.type,
     })
   }
@@ -99,7 +99,7 @@ export function SnippetView({ snippet, codePreviews, isLocked }: SnippetViewProp
     setCopiedRegistryUrl(true)
     setTimeout(() => setCopiedRegistryUrl(false), 3000)
     track('registry_url_copied', {
-      snippet_id: snippet.id,
+      source: 'web',
       snippet_type: snippet.type,
     })
   }
