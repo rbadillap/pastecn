@@ -684,6 +684,9 @@ export function RegistryPastebin() {
             <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
               Blog
             </Link>
+            <Link href="/docs/api" className="text-muted-foreground hover:text-foreground transition-colors">
+              API
+            </Link>
           </nav>
         </div>
       </footer>

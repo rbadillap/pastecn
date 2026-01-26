@@ -1,5 +1,8 @@
+"use client"
+
 import * as React from "react"
-import { Terminal } from "lucide-react"
+import { useState } from "react"
+import { Terminal, Copy, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface TerminalCodeRootProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -68,7 +71,7 @@ const TerminalCodeCommand = React.forwardRef<HTMLDivElement, TerminalCodeCommand
         {showPrompt && (
           <span className="text-neutral-500 select-none">$</span>
         )}
-        <span className="flex-1">{children}</span>
+        <span className="flex-1 whitespace-pre-wrap">{children}</span>
       </div>
     )
   }
@@ -83,10 +86,29 @@ interface TerminalCodeProps {
 }
 
 function TerminalCode({ command, title = "terminal", className }: TerminalCodeProps) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(command)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
-    <TerminalCodeRoot className={className}>
+    <TerminalCodeRoot className={cn("relative group", className)}>
       <TerminalCodeHeader title={title} />
       <TerminalCodeCommand>{command}</TerminalCodeCommand>
+      <button
+        onClick={handleCopy}
+        className="absolute top-3 right-3 p-1.5 rounded-md text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 transition-colors opacity-0 group-hover:opacity-100"
+        aria-label="Copy command"
+      >
+        {copied ? (
+          <Check className="h-4 w-4 text-emerald-400" />
+        ) : (
+          <Copy className="h-4 w-4" />
+        )}
+      </button>
     </TerminalCodeRoot>
   )
 }
