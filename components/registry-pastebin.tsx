@@ -63,9 +63,7 @@ const registryTypes: {
   { value: "lib", label: "Lib", prefix: "lib/", placeholder: "fetcher.ts", registryType: "registry:lib" },
 ]
 
-function generateId(): string {
-  return nanoid(8)
-}
+// ID generation moved to server-side only for security
 
 function getNameFromPath(path: string): string {
   const filename = path.split('/').pop() || path
@@ -252,20 +250,15 @@ export function RegistryPastebin() {
     // AUTO-DETECT: Use block for multi-file, otherwise use the file's registryType
     const parentType = isMultiFile ? "block" : files[0].registryType
 
-    // Generate snippet ID first (will be used for default filenames)
-    let id = generateId()
-    let retries = 0
-    const maxRetries = 3
-
-    // Helper function to build registry JSON with current ID
-    const buildRegistryJson = (snippetId: string): RegistryItemJson => {
+    // Build registry JSON (ID generated server-side)
+    const buildRegistryJson = (): RegistryItemJson => {
       const extension = getExtensionFromLanguage(files[0].language)
 
       let name: string
       if (isMultiFile) {
         name = snippetName.trim()
       } else {
-        const defaultFileName = `snippet-${snippetId}${extension}`
+        const defaultFileName = `snippet${extension}`
         const finalFileName = files[0].fileName.trim() || defaultFileName
         name = getNameFromPath(finalFileName)
       }
@@ -278,7 +271,7 @@ export function RegistryPastebin() {
           const fileType = file.registryType
           const fileTypeConfig = registryTypes.find(t => t.value === fileType)!
 
-          const defaultFileName = `snippet-${snippetId}${getExtensionFromLanguage(file.language)}`
+          const defaultFileName = `snippet${getExtensionFromLanguage(file.language)}`
           const finalFileName = file.fileName.trim() || defaultFileName
           const fullPath = fileType === "file"
             ? finalFileName
@@ -294,94 +287,69 @@ export function RegistryPastebin() {
       }
     }
 
-    // Upload with retry logic
-    while (retries < maxRetries) {
-      try {
-        // Build registry JSON with current ID
-        const registryJson = buildRegistryJson(id)
+    try {
+      const registryJson = buildRegistryJson()
 
-        // Use new upload API that supports password hashing
-        const response = await fetch('/api/snippets/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id,
-            registryJson,
-            password: passwordProtected ? password : undefined,
-          }),
-        })
+      // Upload - ID generated server-side
+      const response = await fetch('/api/snippets/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          registryJson,
+          password: passwordProtected ? password : undefined,
+        }),
+      })
 
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Upload failed')
-        }
-
-        const { blob: blobData, password: returnedPassword } = await response.json()
-
-        // Collect analytics data
-        const fileTypes = [...new Set(files.map(f => f.registryType))]
-        const languages = [...new Set(files.map(f => f.language))]
-
-        track('snippet_created', {
-          registry_type: parentType,
-          language: files[0].language,
-          has_custom_filename: isMultiFile || !!files[0].fileName.trim(),
-          code_length: files.reduce((sum, f) => sum + f.code.length, 0),
-          file_count: files.length,
-          is_multi_file: isMultiFile,
-          is_protected: passwordProtected,
-          // Multi-file specific analytics
-          file_types: JSON.stringify(fileTypes),
-          file_types_count: fileTypes.length,
-          has_mixed_types: fileTypes.length > 1,
-          languages_used: JSON.stringify(languages),
-          has_custom_block_name: isMultiFile && !!snippetName.trim(),
-          all_files_have_custom_names: files.every(f => !!f.fileName.trim()),
-        })
-
-        // Show password toast if protected
-        if (passwordProtected && returnedPassword) {
-          toast({
-            title: "Password-protected snippet created",
-            description: "Save your password - you'll need it to view the snippet.",
-            duration: 6000,
-          })
-        }
-
-        // Clear draft after successful upload
-        clearDraft()
-
-        router.push(`/p/${id}`)
-        return
-      } catch (error: any) {
-        const isCollision = error?.response?.status === 409 ||
-                           error?.message?.includes('collision') ||
-                           error?.status === 409
-
-        if (isCollision) {
-          retries++
-          if (retries < maxRetries) {
-            id = generateId()
-            continue
-          }
-          track('snippet_creation_error', {
-            error_type: 'id_collision',
-            retry_count: retries,
-          })
-          setError('Failed to create snippet after multiple attempts. Please try again.')
-        } else {
-          track('snippet_creation_error', {
-            error_type: 'upload_failed',
-            retry_count: retries,
-          })
-          setError('Failed to upload snippet. Please try again.')
-          setIsUploading(false)
-          return
-        }
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Upload failed')
       }
-    }
 
-    setIsUploading(false)
+      const { id, password: returnedPassword } = await response.json()
+
+      // Collect analytics data
+      const fileTypes = [...new Set(files.map(f => f.registryType))]
+      const languages = [...new Set(files.map(f => f.language))]
+
+      track('snippet_created', {
+        source: 'web',
+        registry_type: parentType,
+        language: files[0].language,
+        has_custom_filename: isMultiFile || !!files[0].fileName.trim(),
+        code_length: files.reduce((sum, f) => sum + f.code.length, 0),
+        file_count: files.length,
+        is_multi_file: isMultiFile,
+        is_protected: passwordProtected,
+        file_types: JSON.stringify(fileTypes),
+        file_types_count: fileTypes.length,
+        has_mixed_types: fileTypes.length > 1,
+        languages_used: JSON.stringify(languages),
+        has_custom_block_name: isMultiFile && !!snippetName.trim(),
+        all_files_have_custom_names: files.every(f => !!f.fileName.trim()),
+      })
+
+      // Show password toast if protected
+      if (passwordProtected && returnedPassword) {
+        toast({
+          title: "Password-protected snippet created",
+          description: "Save your password - you'll need it to view the snippet.",
+          duration: 6000,
+        })
+      }
+
+      // Clear draft after successful upload
+      clearDraft()
+
+      // Redirect using server-generated ID
+      router.push(`/p/${id}`)
+    } catch (error: any) {
+      track('snippet_creation_error', {
+        error_type: 'upload_failed',
+      })
+      setError('Failed to upload snippet. Please try again.')
+    } finally {
+      setIsUploading(false)
+    }
   }
 
   return (
@@ -715,6 +683,9 @@ export function RegistryPastebin() {
             </Link>
             <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
               Blog
+            </Link>
+            <Link href="/docs/api" className="text-muted-foreground hover:text-foreground transition-colors">
+              API
             </Link>
           </nav>
         </div>

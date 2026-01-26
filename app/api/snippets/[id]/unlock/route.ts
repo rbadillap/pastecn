@@ -1,39 +1,17 @@
 import { NextResponse } from 'next/server'
 import { checkRateLimit } from '@vercel/firewall'
+import { track } from '@vercel/analytics/server'
 import { verifyPassword } from '@/lib/password'
-import { getSnippetPasswordHash } from '@/lib/snippets'
-import { sign } from 'jsonwebtoken'
-
-// JWT secret for unlock sessions (use environment variable in production)
-const JWT_SECRET = process.env.UNLOCK_SESSION_SECRET || 'dev-secret-change-in-production'
-
-// Session duration in hours (default: 24)
-const SESSION_DURATION_HOURS = parseInt(process.env.UNLOCK_SESSION_DURATION_HOURS || '24', 10)
+import {
+  getSnippetPasswordHash,
+  createUnlockSession,
+  getSessionDurationSeconds,
+  getUnlockCookieName,
+  getClientIp,
+} from '@/lib/snippets'
 
 interface RouteContext {
   params: Promise<{ id: string }>
-}
-
-/**
- * Get client IP address from request headers
- * Vercel provides this in x-real-ip or x-forwarded-for
- */
-function getClientIp(request: Request): string {
-  const forwarded = request.headers.get('x-forwarded-for')
-  const realIp = request.headers.get('x-real-ip')
-  return forwarded?.split(',')[0] || realIp || 'unknown'
-}
-
-/**
- * Create a JWT session token for unlocked snippet
- * Expires after configured duration (default: 24 hours)
- */
-function createUnlockSession(snippetId: string): string {
-  return sign(
-    { snippetId, type: 'unlock' },
-    JWT_SECRET,
-    { expiresIn: `${SESSION_DURATION_HOURS}h` }
-  )
 }
 
 export async function POST(request: Request, context: RouteContext) {
@@ -43,6 +21,11 @@ export async function POST(request: Request, context: RouteContext) {
     const { password } = await request.json()
 
     if (!password) {
+      track('unlock_error', {
+        source: 'web',
+        reason: 'missing_password',
+        status_code: 400,
+      })
       return NextResponse.json(
         { error: 'Password is required' },
         { status: 400 }
@@ -58,6 +41,9 @@ export async function POST(request: Request, context: RouteContext) {
     })
 
     if (rateLimited) {
+      track('unlock_rate_limited', {
+        source: 'web',
+      })
       return NextResponse.json(
         { error: 'Too many attempts. Please try again in 15 minutes.' },
         { status: 429 }
@@ -68,6 +54,11 @@ export async function POST(request: Request, context: RouteContext) {
     const hash = await getSnippetPasswordHash(id)
 
     if (!hash) {
+      track('unlock_error', {
+        source: 'web',
+        reason: 'not_found_or_not_protected',
+        status_code: 404,
+      })
       return NextResponse.json(
         { error: 'Snippet not found or not protected' },
         { status: 404 }
@@ -78,6 +69,10 @@ export async function POST(request: Request, context: RouteContext) {
     const valid = await verifyPassword(password, hash)
 
     if (!valid) {
+      track('unlock_failed', {
+        source: 'web',
+        reason: 'invalid_password',
+      })
       return NextResponse.json(
         { error: 'Invalid password' },
         { status: 401 }
@@ -93,17 +88,26 @@ export async function POST(request: Request, context: RouteContext) {
       token,
     })
 
-    response.cookies.set(`unlock_${id}`, token, {
+    response.cookies.set(getUnlockCookieName(id), token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: SESSION_DURATION_HOURS * 60 * 60, // Convert hours to seconds
+      maxAge: getSessionDurationSeconds(),
       path: '/',
+    })
+
+    track('unlock_success', {
+      source: 'web',
     })
 
     return response
   } catch (error) {
     console.error('Error unlocking snippet:', error)
+    track('unlock_error', {
+      source: 'web',
+      reason: 'internal_error',
+      status_code: 500,
+    })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

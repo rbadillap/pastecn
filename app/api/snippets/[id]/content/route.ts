@@ -1,24 +1,10 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { verify } from 'jsonwebtoken'
-import { getSnippet } from '@/lib/snippets'
-
-const JWT_SECRET = process.env.UNLOCK_SESSION_SECRET || 'dev-secret-change-in-production'
+import { track } from '@vercel/analytics/server'
+import { getSnippet, verifyUnlockSession, getUnlockCookieName } from '@/lib/snippets'
 
 interface RouteContext {
   params: Promise<{ id: string }>
-}
-
-/**
- * Verify unlock session token
- */
-function verifyUnlockSession(token: string, snippetId: string): boolean {
-  try {
-    const decoded = verify(token, JWT_SECRET) as any
-    return decoded.snippetId === snippetId && decoded.type === 'unlock'
-  } catch {
-    return false
-  }
 }
 
 /**
@@ -37,9 +23,13 @@ export async function GET(request: Request, context: RouteContext) {
 
   // Check authentication
   const cookieStore = await cookies()
-  const sessionToken = cookieStore.get(`unlock_${id}`)?.value
+  const sessionToken = cookieStore.get(getUnlockCookieName(id))?.value
 
   if (!sessionToken || !verifyUnlockSession(sessionToken, id)) {
+    track('content_unauthorized', {
+      source: 'web',
+      reason: !sessionToken ? 'no_session' : 'invalid_session',
+    })
     return NextResponse.json(
       { error: 'Unauthorized - valid session required' },
       { status: 401 }
@@ -50,6 +40,9 @@ export async function GET(request: Request, context: RouteContext) {
   const snippet = await getSnippet(id)
 
   if (!snippet) {
+    track('content_not_found', {
+      source: 'web',
+    })
     return NextResponse.json(
       { error: 'Snippet not found' },
       { status: 404 }
@@ -61,6 +54,11 @@ export async function GET(request: Request, context: RouteContext) {
     path: file.path,
     content: file.content,
   }))
+
+  track('content_accessed', {
+    source: 'web',
+    file_count: snippet.files.length,
+  })
 
   return NextResponse.json({ content }, {
     headers: {

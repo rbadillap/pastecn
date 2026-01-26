@@ -1,6 +1,5 @@
-import { getSnippet, getSnippetPasswordHash } from "@/lib/snippets"
+import { getSnippet, verifyBearerAuth } from "@/lib/snippets"
 import { validateSnippetId } from "@/lib/validation"
-import { verifyPassword } from "@/lib/password"
 import { NextResponse } from "next/server"
 import { track } from "@vercel/analytics/server"
 
@@ -22,8 +21,7 @@ export async function GET(
   // Validate normalized ID format
   if (!id || !validateSnippetId(id)) {
     track('registry_not_found', {
-      snippet_id: id,
-      normalized_id: rawId,
+      source: 'web',
     })
     return NextResponse.json(
       { error: 'Snippet not found' },
@@ -35,8 +33,7 @@ export async function GET(
 
   if (!snippet) {
     track('registry_not_found', {
-      snippet_id: id,
-      normalized_id: rawId,
+      source: 'web',
     })
     return NextResponse.json(
       { error: 'Snippet not found' },
@@ -46,58 +43,52 @@ export async function GET(
 
   // Check if snippet is password-protected
   if (snippet.isProtected) {
-    const authHeader = request.headers.get('Authorization')
-    const password = authHeader?.replace('Bearer ', '').trim()
+    const authResult = await verifyBearerAuth(request, id)
 
-    if (!password) {
-      track('registry_unauthorized', {
-        snippet_id: id,
-        reason: 'no_auth_header',
-      })
-      return NextResponse.json(
-        {
-          error: 'This snippet is password-protected',
-          message: 'Configure authentication in your project',
-          instructions: {
-            step1: 'Get password from snippet creator',
-            step2: 'Add to .env.local: PASTE_PASSWORD=your_password',
-            step3: 'Configure in components.json:',
-            example: {
-              $schema: 'https://ui.shadcn.com/schema.json',
-              registries: {
-                '@pastecn': {
-                  url: 'https://pastecn.com/r/{name}.json',
-                  headers: {
-                    Authorization: 'Bearer ${PASTE_PASSWORD}'
+    if (!authResult.success) {
+      if (authResult.error === 'NO_AUTH_HEADER') {
+        track('registry_unauthorized', {
+          source: 'web',
+          reason: 'no_auth_header',
+        })
+        return NextResponse.json(
+          {
+            error: 'This snippet is password-protected',
+            message: 'Configure authentication in your project',
+            instructions: {
+              step1: 'Get password from snippet creator',
+              step2: 'Add to .env.local: PASTE_PASSWORD=your_password',
+              step3: 'Configure in components.json:',
+              example: {
+                $schema: 'https://ui.shadcn.com/schema.json',
+                registries: {
+                  '@pastecn': {
+                    url: 'https://pastecn.com/r/{name}.json',
+                    headers: {
+                      Authorization: 'Bearer ${PASTE_PASSWORD}'
+                    }
                   }
                 }
               }
             }
+          },
+          {
+            status: 401,
+            headers: { 'WWW-Authenticate': 'Bearer realm="pastecn"' }
           }
-        },
-        {
-          status: 401,
-          headers: { 'WWW-Authenticate': 'Bearer realm="pastecn"' }
-        }
-      )
-    }
+        )
+      }
 
-    // Verify password
-    const hash = await getSnippetPasswordHash(id)
-    if (!hash) {
-      // This shouldn't happen since isProtected was true
-      console.error(`Protected snippet ${id} has no password hash`)
-      return NextResponse.json(
-        { error: 'Snippet configuration error' },
-        { status: 500 }
-      )
-    }
+      if (authResult.error === 'NO_PASSWORD_HASH') {
+        console.error(`Protected snippet ${id} has no password hash`)
+        return NextResponse.json(
+          { error: 'Snippet configuration error' },
+          { status: 500 }
+        )
+      }
 
-    const valid = await verifyPassword(password, hash)
-
-    if (!valid) {
       track('registry_unauthorized', {
-        snippet_id: id,
+        source: 'web',
         reason: 'invalid_password',
       })
       return NextResponse.json(
@@ -130,7 +121,7 @@ export async function GET(
 
   // Track registry access
   track('registry_accessed', {
-    snippet_id: id,
+    source: 'web',
     file_count: snippet.files.length,
     is_protected: snippet.isProtected,
   })
