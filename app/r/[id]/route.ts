@@ -2,6 +2,8 @@ import { getSnippet, verifyBearerAuth } from "@/lib/snippets"
 import { validateSnippetId } from "@/lib/validation"
 import { NextResponse } from "next/server"
 import { track } from "@vercel/analytics/server"
+import { promises as fs } from "fs"
+import path from "path"
 
 interface RouteContext {
   params: Promise<{ id: string }>
@@ -17,8 +19,29 @@ export async function GET(
   const { id: rawId } = await params
   // Remove .json suffix if present (shadcn CLI may include it)
   const id = rawId.endsWith('.json') ? rawId.slice(0, -5) : rawId
-  
-  // Validate normalized ID format
+
+  // First, check if a static registry file exists (for built-in registry items like ai-sdk)
+  try {
+    const staticPath = path.join(process.cwd(), 'public', 'r', `${id}.json`)
+    const staticContent = await fs.readFile(staticPath, 'utf-8')
+    const staticJson = JSON.parse(staticContent)
+
+    track('registry_accessed', {
+      source: 'static',
+      name: id,
+    })
+
+    return NextResponse.json(staticJson, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=31536000, immutable',
+      },
+    })
+  } catch {
+    // Static file doesn't exist, continue to database lookup
+  }
+
+  // Validate normalized ID format for database snippets
   if (!id || !validateSnippetId(id)) {
     track('registry_not_found', {
       source: 'web',
@@ -28,7 +51,7 @@ export async function GET(
       { status: 404 }
     )
   }
-  
+
   const snippet = await getSnippet(id)
 
   if (!snippet) {
