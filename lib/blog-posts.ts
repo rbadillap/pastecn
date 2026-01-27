@@ -10,6 +10,13 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "ai-sdk",
+    title: "Introducing @pastecn/ai-sdk",
+    description: "AI SDK tools for creating and reading pastecn snippets directly from your AI agents",
+    date: "2025-01-27",
+    category: "Feature Announcement",
+  },
+  {
     slug: "password-protected-snippets",
     title: "Password-Protected Snippets",
     description: "Share code with selective access. Auto-generated passwords, enterprise security, seamless CLI integration.",
