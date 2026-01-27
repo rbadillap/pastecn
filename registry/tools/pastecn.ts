@@ -3,9 +3,8 @@ import { z } from "zod";
 
 export const createSnippet = (options?: { baseUrl?: string }) =>
   tool({
-    description:
-      "Create a code snippet on pastecn and get a shareable URL",
-    parameters: z.object({
+    description: "Create a code snippet on pastecn and get a shareable URL",
+    inputSchema: z.object({
       name: z.string().describe("Name of the snippet"),
       type: z
         .enum(["file", "component", "hook", "lib", "block"])
@@ -35,8 +34,8 @@ export const createSnippet = (options?: { baseUrl?: string }) =>
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to create snippet");
+        const error = await response.text();
+        throw new Error(error || "Failed to create snippet");
       }
 
       return response.json();
@@ -46,7 +45,7 @@ export const createSnippet = (options?: { baseUrl?: string }) =>
 export const getSnippet = (options?: { baseUrl?: string }) =>
   tool({
     description: "Retrieve a code snippet from pastecn by ID",
-    parameters: z.object({
+    inputSchema: z.object({
       id: z.string().describe("Snippet ID"),
       password: z
         .string()
@@ -68,8 +67,8 @@ export const getSnippet = (options?: { baseUrl?: string }) =>
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to get snippet");
+        const error = await response.text();
+        throw new Error(error || "Failed to get snippet");
       }
 
       return response.json();

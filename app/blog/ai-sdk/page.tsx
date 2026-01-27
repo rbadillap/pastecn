@@ -72,7 +72,7 @@ export default function AiSdkPost() {
             <p className="text-muted-foreground leading-relaxed">
               Install directly into your project using the shadcn CLI:
             </p>
-            <TerminalCode command="pnpx shadcn add @pastecn/ai-sdk" />
+            <TerminalCode command="pnpx shadcn@latest add @pastecn/ai-sdk" />
             <p className="text-sm text-muted-foreground">
               This copies <code className="bg-muted px-1 py-0.5 rounded">tools/pastecn.ts</code> to your
               project and installs the required dependencies (<code className="bg-muted px-1 py-0.5 rounded">ai</code>,{" "}
@@ -120,10 +120,10 @@ export default function AiSdkPost() {
               language="typescript"
               code={`import { createSnippet, getSnippet } from "@/tools/pastecn";
 import { generateText } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
+import { openai } from "@ai-sdk/openai";
 
 const result = await generateText({
-  model: anthropic("claude-sonnet-4-20250514"),
+  model: openai("gpt-4o-mini"),
   prompt: "Create a React button component and save it to pastecn",
   tools: {
     createSnippet: createSnippet(),
