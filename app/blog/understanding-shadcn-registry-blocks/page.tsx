@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
+import { Icons } from "@/components/icon"
 import { TerminalCode } from "@/components/terminal-code"
 import type { Metadata } from "next"
 
@@ -398,12 +399,18 @@ export default function RegistryBlocksPost() {
         </div>
 
         {/* CTA */}
-        <div className="pt-8 mt-12 border-t border-border">
+        <div className="pt-8 mt-12 border-t border-border flex flex-col sm:flex-row gap-3">
           <Button asChild size="lg" className="w-full sm:w-auto">
             <Link href="/">
               Create a block
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+            <a href="https://github.com/ronny/pastecn" target="_blank" rel="noopener noreferrer">
+              <Icons.github className="mr-2 h-4 w-4" />
+              Star us on GitHub
+            </a>
           </Button>
         </div>
       </article>
