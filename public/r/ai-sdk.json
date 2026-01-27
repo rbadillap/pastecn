@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "ai-sdk",
+  "title": "Pastecn AI SDK Tools",
+  "description": "AI SDK tools for creating and reading pastecn snippets",
+  "dependencies": [
+    "ai",
+    "zod"
+  ],
+  "files": [
+    {
+      "path": "registry/tools/pastecn.ts",
+      "content": "import { tool } from \"ai\";\nimport { z } from \"zod\";\n\nexport const createSnippet = (options?: { baseUrl?: string }) =>\n  tool({\n    description:\n      \"Create a code snippet on pastecn and get a shareable URL\",\n    parameters: z.object({\n      name: z.string().describe(\"Name of the snippet\"),\n      type: z\n        .enum([\"file\", \"component\", \"hook\", \"lib\", \"block\"])\n        .describe(\"Type of snippet\"),\n      files: z\n        .array(\n          z.object({\n            path: z\n              .string()\n              .describe('File path (e.g., \"components/button.tsx\")'),\n            content: z.string().describe(\"File content\"),\n            target: z\n              .string()\n              .optional()\n              .describe(\"Target path for installation\"),\n          })\n        )\n        .describe(\"Files to include in the snippet\"),\n      password: z.string().optional().describe(\"Optional password protection\"),\n    }),\n    execute: async ({ name, type, files, password }) => {\n      const baseUrl = options?.baseUrl ?? \"https://pastecn.com\";\n      const response = await fetch(`${baseUrl}/api/v1/snippets`, {\n        method: \"POST\",\n        headers: { \"Content-Type\": \"application/json\" },\n        body: JSON.stringify({ name, type, files, password }),\n      });\n\n      if (!response.ok) {\n        const error = await response.json();\n        throw new Error(error.message || \"Failed to create snippet\");\n      }\n\n      return response.json();\n    },\n  });\n\nexport const getSnippet = (options?: { baseUrl?: string }) =>\n  tool({\n    description: \"Retrieve a code snippet from pastecn by ID\",\n    parameters: z.object({\n      id: z.string().describe(\"Snippet ID\"),\n      password: z\n        .string()\n        .optional()\n        .describe(\"Password if snippet is protected\"),\n    }),\n    execute: async ({ id, password }) => {\n      const baseUrl = options?.baseUrl ?? \"https://pastecn.com\";\n      const headers: Record<string, string> = {\n        \"Content-Type\": \"application/json\",\n      };\n\n      if (password) {\n        headers[\"Authorization\"] = `Bearer ${password}`;\n      }\n\n      const response = await fetch(`${baseUrl}/api/v1/snippets/${id}`, {\n        headers,\n      });\n\n      if (!response.ok) {\n        const error = await response.json();\n        throw new Error(error.message || \"Failed to get snippet\");\n      }\n\n      return response.json();\n    },\n  });\n",
+      "type": "registry:file",
+      "target": "tools/pastecn.ts"
+    }
+  ],
+  "type": "registry:file"
+}
