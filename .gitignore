@@ -30,4 +30,4 @@ next-env.d.ts
 .env*.local
 
 # os things
-.DS_Store
+**/.DS_Store
