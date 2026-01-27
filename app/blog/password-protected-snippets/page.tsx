@@ -322,7 +322,7 @@ PASTE_PASSWORD=a7B3mK9pXv2nQr4t" />
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-            <a href="https://github.com/ronny/pastecn" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/rbadillap/pastecn" target="_blank" rel="noopener noreferrer">
               <Icons.github className="mr-2 h-4 w-4" />
               Star us on GitHub
             </a>
