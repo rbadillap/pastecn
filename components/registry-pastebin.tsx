@@ -495,6 +495,9 @@ export function RegistryPastebin() {
                     {/* Filename Input */}
                     <InputGroupAddon align="block-end" className="border-t">
                       <div className="flex items-center gap-2 w-full">
+                        <InputGroupText className="hidden md:flex text-xs text-muted-foreground">
+                          Save as
+                        </InputGroupText>
                         <InputGroupText className="text-xs">
                           {fileTypeConfig.prefix}
                         </InputGroupText>
