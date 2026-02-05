@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronDown, Loader2, Code2, Plus, Lock, RefreshCw, Copy, Check } from "lucide-react"
+import { ChevronDown, Loader2, Code2, Plus, Lock, RefreshCw, Copy, Check, Clock } from "lucide-react"
 import { upload } from "@vercel/blob/client"
 import { nanoid } from "nanoid"
 import { track } from "@vercel/analytics/react"
@@ -14,6 +14,13 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   InputGroup,
   InputGroupAddon,
@@ -28,6 +35,8 @@ import { toast } from "@/hooks/use-toast"
 import { ClearDraftDialog } from "./clear-draft-dialog"
 
 export type RegistryType = "file" | "component" | "hook" | "lib"
+
+export type ExpirationOption = '1h' | '24h' | '7d' | '30d' | 'never'
 
 export type LanguageType =
   | "typescript"
@@ -142,6 +151,9 @@ export function RegistryPastebin() {
   const [passwordProtected, setPasswordProtected] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordCopied, setPasswordCopied] = useState(false)
+
+  // Expiration state
+  const [expiration, setExpiration] = useState<ExpirationOption>('never')
 
   // Show toast when draft is restored
   useEffect(() => {
@@ -297,6 +309,7 @@ export function RegistryPastebin() {
         body: JSON.stringify({
           registryJson,
           password: passwordProtected ? password : undefined,
+          expiresIn: expiration,
         }),
       })
 
@@ -320,6 +333,7 @@ export function RegistryPastebin() {
         file_count: files.length,
         is_multi_file: isMultiFile,
         is_protected: passwordProtected,
+        expires_in: expiration,
         file_types: JSON.stringify(fileTypes),
         file_types_count: fileTypes.length,
         has_mixed_types: fileTypes.length > 1,
@@ -633,6 +647,40 @@ export function RegistryPastebin() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Expiration */}
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="expiration" className="text-sm font-medium">
+                  Expiration
+                </Label>
+              </div>
+              <Select
+                value={expiration}
+                onValueChange={(v) => {
+                  setExpiration(v as ExpirationOption)
+                  track('expiration_changed', { value: v })
+                }}
+                disabled={isUploading}
+              >
+                <SelectTrigger className="w-[140px]" size="sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="never">Never</SelectItem>
+                  {process.env.NODE_ENV === 'development' && (
+                    <SelectItem value="10s">10 seconds (dev)</SelectItem>
+                  )}
+                  <SelectItem value="1h">1 hour</SelectItem>
+                  <SelectItem value="24h">24 hours</SelectItem>
+                  <SelectItem value="7d">7 days</SelectItem>
+                  <SelectItem value="30d">30 days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Create Button */}

@@ -21,7 +21,8 @@ import {
  *     "path": "components/my-component.tsx",
  *     "content": "export function..."
  *   }],
- *   "password": "optional"    // Enable password protection
+ *   "password": "optional",   // Enable password protection
+ *   "expiresIn": "24h"        // Optional: 1h | 24h | 7d | 30d | never
  * }
  *
  * Response 201:
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
       type: body.type,
       files: body.files,
       password: body.password,
+      expiresIn: body.expiresIn,
     }
 
     const result = await createSnippet(input)
@@ -48,6 +50,7 @@ export async function POST(request: Request) {
       source: 'api',
       file_count: input.files?.length || 0,
       is_protected: !!input.password,
+      expires_in: input.expiresIn || 'never',
     })
 
     return NextResponse.json(result, { status: 201 })

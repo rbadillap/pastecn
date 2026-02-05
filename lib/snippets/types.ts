@@ -8,6 +8,10 @@
 // Valid snippet types aligned with shadcn registry
 export type SnippetType = 'file' | 'component' | 'hook' | 'lib' | 'block'
 
+// Expiration options for snippets
+// '10s' is for local testing only
+export type ExpirationOption = '10s' | '1h' | '24h' | '7d' | '30d' | 'never'
+
 // Valid registry types (with registry: prefix)
 export type RegistryType =
   | 'registry:file'
@@ -33,6 +37,7 @@ export interface RegistryItemJson {
   meta?: {
     [key: string]: unknown
     passwordHash?: string // bcrypt hash, never exposed to client
+    expiresAt?: string // ISO 8601 timestamp for expiration
   }
 }
 
@@ -69,6 +74,7 @@ export interface SnippetMetadata {
   meta: {
     primaryLanguage: string
     fileCount: number
+    expiresAt?: string // ISO 8601 timestamp, exposed for UI display
   }
   isProtected: boolean
 }
@@ -92,6 +98,7 @@ export interface CreateSnippetInput {
     target?: string
   }>
   password?: string
+  expiresIn?: ExpirationOption
 }
 
 /**
@@ -122,6 +129,7 @@ export const API_ERROR_CODES = {
   AUTH_REQUIRED: 'AUTH_REQUIRED',
   INVALID_PASSWORD: 'INVALID_PASSWORD',
   NOT_FOUND: 'NOT_FOUND',
+  EXPIRED: 'EXPIRED',
   ID_COLLISION: 'ID_COLLISION',
   RATE_LIMITED: 'RATE_LIMITED',
   INTERNAL_ERROR: 'INTERNAL_ERROR',

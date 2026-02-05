@@ -18,6 +18,14 @@ import type {
 } from './types'
 
 /**
+ * Check if a snippet has expired
+ */
+export function isExpired(expiresAt?: string): boolean {
+  if (!expiresAt) return false
+  return new Date(expiresAt) < new Date()
+}
+
+/**
  * Map registry type string to SnippetType
  */
 function mapRegistryType(registryType: string): SnippetType {
@@ -115,6 +123,11 @@ export const getSnippet = cache(async (id: string): Promise<Snippet | null> => {
     return null
   }
 
+  // Check if snippet has expired
+  if (isExpired(json.meta?.expiresAt)) {
+    return null
+  }
+
   // Map Registry JSON to Snippet
   const type = mapRegistryType(json.type)
   const files: SnippetFile[] = json.files.map((file) => {
@@ -139,6 +152,7 @@ export const getSnippet = cache(async (id: string): Promise<Snippet | null> => {
     meta: {
       primaryLanguage: files[0]?.language || 'text',
       fileCount: files.length,
+      expiresAt: json.meta?.expiresAt,
     },
     isProtected: !!json.meta?.passwordHash,
   }
@@ -157,6 +171,11 @@ export const getSnippetMetadata = cache(async (id: string): Promise<SnippetMetad
   const json = await fetchRegistryJson(id)
 
   if (!json) {
+    return null
+  }
+
+  // Check if snippet has expired
+  if (isExpired(json.meta?.expiresAt)) {
     return null
   }
 
@@ -184,6 +203,7 @@ export const getSnippetMetadata = cache(async (id: string): Promise<SnippetMetad
     meta: {
       primaryLanguage: files[0]?.language || 'text',
       fileCount: files.length,
+      expiresAt: json.meta?.expiresAt,
     },
     isProtected: !!json.meta?.passwordHash,
   }
@@ -224,4 +244,27 @@ export async function snippetExists(id: string): Promise<boolean> {
     }
     throw error
   }
+}
+
+/**
+ * Get snippet expiration status (for detailed error messages)
+ *
+ * Used by API routes to return specific error messages for expired snippets.
+ *
+ * @param id - Snippet ID
+ * @returns Object with exists and expired status
+ */
+export async function getSnippetExpirationStatus(
+  id: string
+): Promise<{ exists: boolean; expired: boolean; expiresAt?: string }> {
+  const json = await fetchRegistryJson(id)
+
+  if (!json) {
+    return { exists: false, expired: false }
+  }
+
+  const expiresAt = json.meta?.expiresAt
+  const expired = isExpired(expiresAt)
+
+  return { exists: true, expired, expiresAt }
 }
