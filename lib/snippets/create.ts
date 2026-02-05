@@ -13,6 +13,7 @@ import type {
   CreateSnippetResult,
   RegistryItemJson,
   ApiErrorCode,
+  ExpirationOption,
 } from './types'
 import { API_ERROR_CODES } from './types'
 
@@ -41,6 +42,23 @@ export function generateSnippetId(): string {
  */
 function toRegistryType(type: string): string {
   return `registry:${type}`
+}
+
+/**
+ * Calculate expiration timestamp from option
+ */
+function calculateExpiresAt(expiresIn: ExpirationOption): string | undefined {
+  if (expiresIn === 'never') return undefined
+
+  const durations: Record<string, number> = {
+    '10s': 10 * 1000, // Local testing only
+    '1h': 60 * 60 * 1000,
+    '24h': 24 * 60 * 60 * 1000,
+    '7d': 7 * 24 * 60 * 60 * 1000,
+    '30d': 30 * 24 * 60 * 60 * 1000,
+  }
+
+  return new Date(Date.now() + durations[expiresIn]).toISOString()
 }
 
 /**
@@ -82,7 +100,7 @@ function validateFiles(
  * @throws CreateSnippetError if validation fails or ID collision
  */
 export async function createSnippet(input: CreateSnippetInput): Promise<CreateSnippetResult> {
-  const { name, type, files, password } = input
+  const { name, type, files, password, expiresIn } = input
 
   // Always generate ID server-side (no custom IDs allowed)
   const id = generateSnippetId()
@@ -142,6 +160,17 @@ export async function createSnippet(input: CreateSnippetInput): Promise<CreateSn
     registryJson.meta = {
       ...registryJson.meta,
       passwordHash: hash,
+    }
+  }
+
+  // Set expiration if provided
+  if (expiresIn && expiresIn !== 'never') {
+    const expiresAt = calculateExpiresAt(expiresIn)
+    if (expiresAt) {
+      registryJson.meta = {
+        ...registryJson.meta,
+        expiresAt,
+      }
     }
   }
 

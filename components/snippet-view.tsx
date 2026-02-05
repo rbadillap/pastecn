@@ -2,7 +2,8 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Check, Copy, Plus, Link as LinkIcon, FileJson, Terminal, ChevronDown } from "lucide-react"
+import { Check, Copy, Plus, Link as LinkIcon, FileJson, Terminal, ChevronDown, Clock } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
 import { track } from "@vercel/analytics/react"
 import type { Snippet, SnippetMetadata } from "@/lib/snippets"
 import { LockedCodeContainer } from "@/components/locked-code-container"
@@ -257,6 +258,12 @@ export function SnippetView({ snippet, codePreviews, isLocked }: SnippetViewProp
                   <Copy className="h-3 w-3 opacity-30 group-hover:opacity-100 transition-opacity" />
                 )}
               </button>
+              {snippet.meta.expiresAt && (
+                <div className="flex items-center gap-2">
+                  <Clock className="h-3 w-3" />
+                  <span>Expires in {formatDistanceToNow(new Date(snippet.meta.expiresAt))}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

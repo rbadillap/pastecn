@@ -18,6 +18,7 @@ export type {
   CreateSnippetResult,
   ApiError,
   ApiErrorCode,
+  ExpirationOption,
 } from './types'
 export { API_ERROR_CODES } from './types'
 
@@ -27,6 +28,8 @@ export {
   getSnippetMetadata,
   getSnippetPasswordHash,
   snippetExists,
+  isExpired,
+  getSnippetExpirationStatus,
 } from './read'
 
 // Create operations

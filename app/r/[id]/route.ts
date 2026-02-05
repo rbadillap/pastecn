@@ -1,4 +1,4 @@
-import { getSnippet, verifyBearerAuth } from "@/lib/snippets"
+import { getSnippet, getSnippetExpirationStatus, verifyBearerAuth } from "@/lib/snippets"
 import { validateSnippetId } from "@/lib/validation"
 import { NextResponse } from "next/server"
 import { track } from "@vercel/analytics/server"
@@ -48,6 +48,32 @@ export async function GET(
     })
     return NextResponse.json(
       { error: 'Snippet not found' },
+      { status: 404 }
+    )
+  }
+
+  // Check expiration before fetching full snippet
+  const expirationStatus = await getSnippetExpirationStatus(id)
+
+  if (!expirationStatus.exists) {
+    track('registry_not_found', {
+      source: 'web',
+    })
+    return NextResponse.json(
+      { error: 'Snippet not found' },
+      { status: 404 }
+    )
+  }
+
+  if (expirationStatus.expired) {
+    track('registry_expired', {
+      source: 'web',
+    })
+    return NextResponse.json(
+      {
+        error: 'Snippet not found',
+        detail: 'This snippet has expired and is no longer available.'
+      },
       { status: 404 }
     )
   }

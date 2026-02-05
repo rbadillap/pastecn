@@ -4,6 +4,7 @@ import { validateSnippetId } from '@/lib/validation'
 import {
   getSnippet,
   getSnippetMetadata,
+  getSnippetExpirationStatus,
   verifyBearerAuth,
   API_ERROR_CODES,
   type ApiError,
@@ -53,7 +54,38 @@ export async function GET(request: Request, { params }: RouteContext) {
     return NextResponse.json(apiError, { status: 400 })
   }
 
-  // First, get metadata to check if protected
+  // Check if snippet exists and expiration status
+  const expirationStatus = await getSnippetExpirationStatus(id)
+
+  if (!expirationStatus.exists) {
+    const apiError: ApiError = {
+      code: API_ERROR_CODES.NOT_FOUND,
+      message: 'Snippet not found',
+    }
+
+    track('snippet_get_error', {
+      source: 'api',
+      error_code: API_ERROR_CODES.NOT_FOUND,
+    })
+
+    return NextResponse.json(apiError, { status: 404 })
+  }
+
+  if (expirationStatus.expired) {
+    const apiError: ApiError = {
+      code: API_ERROR_CODES.EXPIRED,
+      message: 'This snippet has expired and is no longer available.',
+    }
+
+    track('snippet_get_error', {
+      source: 'api',
+      error_code: API_ERROR_CODES.EXPIRED,
+    })
+
+    return NextResponse.json(apiError, { status: 404 })
+  }
+
+  // Get metadata to check if protected
   const metadata = await getSnippetMetadata(id)
 
   if (!metadata) {
