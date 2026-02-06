@@ -151,6 +151,7 @@ export function RegistryPastebin() {
   const [passwordProtected, setPasswordProtected] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordCopied, setPasswordCopied] = useState(false)
+  const [passwordRegenerating, setPasswordRegenerating] = useState(false)
 
   // Expiration state
   const [expiration, setExpiration] = useState<ExpirationOption>('never')
@@ -606,14 +607,21 @@ export function RegistryPastebin() {
                   <Input
                     value={password}
                     readOnly
-                    className="font-mono text-sm"
+                    className={`font-mono text-sm transition-all duration-150 ease-out ${
+                      passwordRegenerating ? 'scale-[0.98] blur-[2px] opacity-70' : 'scale-100 blur-0 opacity-100'
+                    }`}
                   />
                   <Button
                     variant="outline"
                     size="icon"
+                    className="transition-transform duration-150 ease-out active:scale-[0.95]"
                     onClick={() => {
-                      setPassword(createSnippetPassword())
-                      setPasswordCopied(false)
+                      setPasswordRegenerating(true)
+                      setTimeout(() => {
+                        setPassword(createSnippetPassword())
+                        setPasswordCopied(false)
+                        setPasswordRegenerating(false)
+                      }, 150)
                       track('password_regenerated')
                     }}
                     disabled={isUploading}
@@ -624,6 +632,7 @@ export function RegistryPastebin() {
                   <Button
                     variant="outline"
                     size="icon"
+                    className="transition-transform duration-150 ease-out active:scale-[0.95]"
                     onClick={() => {
                       navigator.clipboard.writeText(password)
                       setPasswordCopied(true)
