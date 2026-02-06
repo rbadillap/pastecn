@@ -10,6 +10,14 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "link-expiration",
+    title: "Link Expiration",
+    description: "Set automatic expiration times for snippets. Control snippet lifetime with flexible TTL options from 1 hour to never expire.",
+    date: "2026-02-06",
+    category: "Feature Announcement",
+    image: "/opengraph-image.jpg"
+  },
+  {
     slug: "ai-sdk",
     title: "Introducing @pastecn/ai-sdk",
     description: "AI SDK tools for creating and reading pastecn snippets directly from your AI agents",
