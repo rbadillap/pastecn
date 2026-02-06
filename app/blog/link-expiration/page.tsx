@@ -284,7 +284,7 @@ export default function LinkExpirationPost() {
             <h2 className="text-2xl font-semibold tracking-tight">Technical details</h2>
             <p className="text-muted-foreground leading-relaxed">
               Expiration is enforced at read time. When accessing an expired snippet, the system checks the
-              expiration timestamp and returns a 410 Gone response if the deadline has passed.
+              expiration timestamp and returns a 404 Not Found response if the deadline has passed.
             </p>
 
             <div className="space-y-4">
@@ -313,10 +313,10 @@ export default function LinkExpirationPost() {
               <div className="flex items-start gap-3">
                 <Trash2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-foreground mb-1">HTTP 410 Gone status</p>
+                  <p className="font-medium text-foreground mb-1">HTTP 404 Not Found status</p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Expired snippets return a 410 Gone status code, signaling that the resource existed
-                    but is no longer available and will not return.
+                    Expired snippets return a 404 Not Found status code, indicating that the resource
+                    is no longer available.
                   </p>
                 </div>
               </div>
