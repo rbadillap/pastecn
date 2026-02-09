@@ -1,0 +1,5 @@
+{
+  "name": "@pastecn/typescript-config",
+  "private": true,
+  "files": ["*.json"]
+}
