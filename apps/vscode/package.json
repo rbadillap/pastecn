@@ -2,7 +2,7 @@
   "name": "pastecn",
   "displayName": "pastecn",
   "description": "Turn any code into shareable shadcn registry URLs. Paste code, get a URL, share it instantly.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "pastecn",
   "icon": "icon.png",
   "repository": {
@@ -12,8 +12,15 @@
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Other"],
-  "keywords": ["pastebin", "code sharing", "snippets", "shadcn"],
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "pastebin",
+    "code sharing",
+    "snippets",
+    "shadcn"
+  ],
   "main": "./dist/extension.js",
   "activationEvents": [],
   "contributes": {
@@ -58,7 +65,13 @@
         },
         "pastecn.defaultExpiration": {
           "type": "string",
-          "enum": ["1h", "24h", "7d", "30d", "never"],
+          "enum": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "never"
+          ],
           "default": "never",
           "description": "Default expiration time"
         }
