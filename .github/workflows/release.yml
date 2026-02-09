@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/vscode/**'
+      - 'packages/sdk/**'
+      - '.changeset/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - run: pnpm install
+
+      - name: Create Release PR or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: pnpm changeset version
+          commit: "chore: version packages"
+          title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build extension
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        run: pnpm --filter pastecn build
+
+      - name: Publish to VS Code Marketplace
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        run: pnpm --filter pastecn publish:vscode
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Publish to Open VSX
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        run: pnpm --filter pastecn publish:ovsx
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_TOKEN }}
