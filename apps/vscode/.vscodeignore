@@ -6,3 +6,4 @@ tsup.config.ts
 *.ts
 !dist/**
 *.vsix
+assets/**
