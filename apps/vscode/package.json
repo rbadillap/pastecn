@@ -1,0 +1,86 @@
+{
+  "name": "pastecn",
+  "displayName": "pastecn",
+  "description": "Turn any code into shareable shadcn registry URLs. Paste code, get a URL, share it instantly.",
+  "version": "0.0.1",
+  "publisher": "pastecn",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rbadillap/pastecn"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "keywords": ["pastebin", "code sharing", "snippets", "shadcn"],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "pastecn.shareSelection",
+        "title": "pastecn: Share Selection"
+      },
+      {
+        "command": "pastecn.shareFile",
+        "title": "pastecn: Share File"
+      },
+      {
+        "command": "pastecn.openSnippet",
+        "title": "pastecn: Open Snippet"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "pastecn.shareSelection",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s",
+        "when": "editorHasSelection"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "pastecn.shareSelection",
+          "when": "editorHasSelection",
+          "group": "pastecn"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "pastecn",
+      "properties": {
+        "pastecn.baseUrl": {
+          "type": "string",
+          "default": "https://pastecn.com",
+          "description": "Base URL for pastecn instance"
+        },
+        "pastecn.defaultExpiration": {
+          "type": "string",
+          "enum": ["1h", "24h", "7d", "30d", "never"],
+          "default": "never",
+          "description": "Default expiration time"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "package": "pnpm build && vsce package --no-dependencies",
+    "package:pre": "pnpm build && vsce package --pre-release --no-dependencies",
+    "publish:vscode": "vsce publish --no-dependencies",
+    "publish:ovsx": "ovsx publish"
+  },
+  "devDependencies": {
+    "@pastecn/typescript-config": "workspace:*",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.0",
+    "ovsx": "^0.10.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
+  }
+}

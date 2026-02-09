@@ -12,6 +12,10 @@
       "persistent": true
     },
     "lint": {},
-    "typecheck": {}
+    "typecheck": {},
+    "package": {
+      "dependsOn": ["build"],
+      "outputs": ["*.vsix"]
+    }
   }
 }

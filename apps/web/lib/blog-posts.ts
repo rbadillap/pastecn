@@ -10,6 +10,14 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "vscode-extension",
+    title: "VS Code Extension",
+    description: "Share code snippets directly from VS Code. Select code, press a shortcut, and get a shareable URL.",
+    date: "2026-02-09",
+    category: "Feature Announcement",
+    image: "/opengraph-image.jpg"
+  },
+  {
     slug: "link-expiration",
     title: "Link Expiration",
     description: "Set automatic expiration times for snippets. Control snippet lifetime with flexible TTL options from 1 hour to never expire.",

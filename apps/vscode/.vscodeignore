@@ -1,0 +1,8 @@
+.vscode/**
+src/**
+node_modules/**
+tsconfig.json
+tsup.config.ts
+*.ts
+!dist/**
+*.vsix
