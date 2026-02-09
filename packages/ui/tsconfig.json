@@ -1,0 +1,11 @@
+{
+  "extends": "@pastecn/typescript-config/react-library.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "verbatimModuleSyntax": false
+  },
+  "include": ["src/**/*"]
+}
