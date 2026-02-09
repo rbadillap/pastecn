@@ -7,5 +7,5 @@
   "access": "restricted",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@pastecn/web", "@pastecn/ui", "@pastecn/sdk"]
+  "ignore": ["@pastecn/web", "@pastecn/ui", "@pastecn/sdk", "pastecn"]
 }

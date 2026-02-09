@@ -30,11 +30,6 @@ interface ExpirationOption {
   value: '1h' | '24h' | '7d' | '30d' | 'never'
 }
 
-interface PasswordOption {
-  label: string
-  value: boolean
-}
-
 async function share(content: string, filePath: string, languageId: string) {
   const config = getConfig()
   const fileName = path.basename(filePath)
@@ -52,16 +47,6 @@ async function share(content: string, filePath: string, languageId: string) {
   })
   if (!expiration) return
 
-  const passwordOptions: PasswordOption[] = [
-    { label: 'No password', value: false },
-    { label: 'Password protect', value: true },
-  ]
-
-  const usePassword = await vscode.window.showQuickPick(passwordOptions, {
-    placeHolder: 'Password protection?',
-  })
-  if (usePassword === undefined) return
-
   try {
     const result = await vscode.window.withProgress(
       {
@@ -74,18 +59,13 @@ async function share(content: string, filePath: string, languageId: string) {
           type: 'file',
           files: [{ path: fileName, content }],
           expiresIn: expiration.value,
-          password: usePassword.value,
         })
     )
 
     await vscode.env.clipboard.writeText(result.url)
 
-    const message = result.password
-      ? `Snippet created! URL copied. Password: ${result.password}`
-      : 'Snippet created! URL copied to clipboard.'
-
     const action = await vscode.window.showInformationMessage(
-      message,
+      'Snippet created! URL copied to clipboard.',
       'Open in Browser'
     )
     if (action === 'Open in Browser') {

@@ -5,14 +5,12 @@ interface CreateSnippetInput {
   type: 'file' | 'component' | 'hook' | 'lib'
   files: Array<{ path: string; content: string }>
   expiresIn?: '1h' | '24h' | '7d' | '30d' | 'never'
-  password?: boolean
 }
 
 interface CreateSnippetResult {
   id: string
   url: string
   registryUrl: string
-  password?: string
 }
 
 export async function createSnippet(

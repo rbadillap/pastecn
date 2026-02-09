@@ -11,5 +11,4 @@ All notable changes to the "pastecn" extension will be documented in this file.
 - Open snippet command
 - Context menu integration
 - Expiration time selection (1h, 24h, 7d, 30d, never)
-- Password protection option
 - Custom base URL configuration for self-hosted instances
