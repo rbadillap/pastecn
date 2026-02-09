@@ -6,7 +6,7 @@
 
 Turn any code into shareable shadcn registry URLs.
 
-![Demo](https://raw.githubusercontent.com/rbadillap/pastecn/main/apps/vscode/assets/vscode.gif)
+![Demo](assets/vscode.gif)
 
 ## Installation
 
