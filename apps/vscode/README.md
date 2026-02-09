@@ -1,6 +1,18 @@
 # pastecn
 
-Turn any code into shareable shadcn registry URLs. Paste code, get a URL, share it instantly.
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/pastecn.pastecn?style=for-the-badge&label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=pastecn.pastecn)
+[![Open VSX](https://img.shields.io/open-vsx/v/pastecn/pastecn?style=for-the-badge&label=Open%20VSX)](https://open-vsx.org/extension/pastecn/pastecn)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](https://github.com/rbadillap/pastecn/blob/main/LICENSE.md)
+
+Turn any code into shareable shadcn registry URLs.
+
+![Demo](assets/vscode.gif)
+
+## Installation
+
+[Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=pastecn.pastecn)
+
+Also works with **Cursor**, **VSCodium**, **Windsurf**, and any VS Code fork.
 
 ## Features
 
@@ -40,13 +52,11 @@ Turn any code into shareable shadcn registry URLs. Paste code, get a URL, share 
 }
 ```
 
-## Development
+## Links
 
-```bash
-pnpm dev        # Watch mode
-pnpm build      # Build extension
-pnpm package    # Create .vsix
-```
+- [Website](https://pastecn.com)
+- [Blog Post](https://pastecn.com/blog/vscode-extension)
+- [GitHub](https://github.com/rbadillap/pastecn)
 
 ## License
 
