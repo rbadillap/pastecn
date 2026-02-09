@@ -1,9 +1,10 @@
 {
   "name": "pastecn",
   "displayName": "pastecn",
-  "description": "Share code snippets as shadcn registry URLs",
+  "description": "Turn any code into shareable shadcn registry URLs. Paste code, get a URL, share it instantly.",
   "version": "0.0.1",
   "publisher": "pastecn",
+  "icon": "icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/rbadillap/pastecn"

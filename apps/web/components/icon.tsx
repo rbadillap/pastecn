@@ -1,4 +1,4 @@
-import { SVGProps } from "react"
+import type { SVGProps } from "react"
 
 export type IconProps = SVGProps<SVGSVGElement>
 
@@ -121,6 +121,32 @@ function Github(props: IconProps) {
   )
 }
 
+function VSCode(props: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      {...props}
+    >
+      <path d="M17.583.063a1.5 1.5 0 0 0-1.032.392 1.5 1.5 0 0 0-.001 0A.88.88 0 0 0 16.5.5L8.528 9.316 3.875 5.5l-.407-.35a1 1 0 0 0-1.024-.154 1 1 0 0 0-.012.005l-1.817.75a1 1 0 0 0-.615.915v9.334a1 1 0 0 0 .615.917l1.817.764a1 1 0 0 0 1.036-.14l.407-.35 4.653-3.815 7.972 8.827a1.5 1.5 0 0 0 .55.442l.003.001a1.5 1.5 0 0 0 .694.154h.001a1.5 1.5 0 0 0 .341-.04l.004-.001a1.5 1.5 0 0 0 .346-.126l3.916-1.609a1.5 1.5 0 0 0 .924-1.382V3.161a1.5 1.5 0 0 0-.924-1.384L18.266.168a1.5 1.5 0 0 0-.683-.105zM18 6.92v10.163l-6.198-5.08L18 6.919zM3 8.574l3.099 2.926L3 14.426V8.574z"/>
+    </svg>
+  )
+}
+
+function OpenVSX(props: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      {...props}
+    >
+      <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm-1 3v4H7v2h4v4h2v-4h4v-2h-4V7h-2z"/>
+    </svg>
+  )
+}
+
 export const Icons = {
   shadcn: Shadcn,
   file: File,
@@ -128,4 +154,6 @@ export const Icons = {
   hook: Hook,
   lib: Lib,
   github: Github,
+  vscode: VSCode,
+  openvsx: OpenVSX,
 }

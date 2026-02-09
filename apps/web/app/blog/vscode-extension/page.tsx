@@ -10,11 +10,11 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pastecn.com'
 
 export const metadata: Metadata = {
   title: "VS Code Extension — pastecn",
-  description: "Share code snippets directly from VS Code with pastecn. Install the extension and share code as shadcn registry URLs with a keyboard shortcut.",
+  description: "Turn any code into shareable shadcn registry URLs. Paste code, get a URL, share it instantly.",
   keywords: ["vscode extension", "code sharing", "snippets", "shadcn", "visual studio code", "ide integration"],
   openGraph: {
     title: "VS Code Extension — pastecn",
-    description: "Share code snippets directly from VS Code with pastecn. Install the extension and share code as shadcn registry URLs with a keyboard shortcut.",
+    description: "Turn any code into shareable shadcn registry URLs. Paste code, get a URL, share it instantly.",
     url: `${siteUrl}/blog/vscode-extension`,
     type: "article",
     images: [
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "VS Code Extension — pastecn",
-    description: "Share code snippets directly from VS Code with pastecn. Install the extension and share code as shadcn registry URLs with a keyboard shortcut.",
+    description: "Turn any code into shareable shadcn registry URLs. Paste code, get a URL, share it instantly.",
     images: ["/opengraph-image.jpg"],
   },
   alternates: {
@@ -72,6 +72,19 @@ export default function VSCodeExtensionPost() {
               Select code, trigger the command, and the extension creates a snippet and copies the URL to your
               clipboard. Your code is immediately shareable as a shadcn-compatible registry URL.
             </p>
+
+            {/* Demo Video */}
+            <div className="rounded-lg border border-border overflow-hidden">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full"
+              >
+                <source src="/blog/vscode-extension/vscode-web.mp4" type="video/mp4" />
+              </video>
+            </div>
           </section>
 
           {/* Installation */}
@@ -79,6 +92,38 @@ export default function VSCodeExtensionPost() {
             <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
 
             <div className="space-y-8">
+              {/* Marketplace buttons */}
+              <div className="grid sm:grid-cols-2 gap-3">
+                <a
+                  href="https://marketplace.visualstudio.com/items?itemName=pastecn.pastecn"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-4 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#007ACC] text-white shrink-0">
+                    <Icons.vscode className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">VS Code Marketplace</p>
+                    <p className="text-xs text-muted-foreground">For VS Code</p>
+                  </div>
+                </a>
+                <a
+                  href="https://open-vsx.org/extension/pastecn/pastecn"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-4 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#c160ef] text-white shrink-0">
+                    <Icons.openvsx className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">Open VSX Registry</p>
+                    <p className="text-xs text-muted-foreground">For VSCodium & alternatives</p>
+                  </div>
+                </a>
+              </div>
+
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-medium shrink-0 mt-0.5">
@@ -87,7 +132,7 @@ export default function VSCodeExtensionPost() {
                   <div className="flex-1 space-y-2">
                     <h3 className="font-semibold text-foreground">From VS Code Marketplace</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      Open VS Code, go to Extensions (Cmd+Shift+X / Ctrl+Shift+X), search for "pastecn",
+                      Open VS Code, go to Extensions (Cmd+Shift+X / Ctrl+Shift+X), search for &quot;pastecn&quot;,
                       and click Install.
                     </p>
                   </div>
@@ -103,7 +148,7 @@ export default function VSCodeExtensionPost() {
                     <h3 className="font-semibold text-foreground">From Open VSX (for VSCodium)</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       The extension is also published to Open VSX for VSCodium and other VS Code alternatives.
-                      Search for "pastecn" in your editor's extension marketplace.
+                      Search for &quot;pastecn&quot; in your editor&apos;s extension marketplace.
                     </p>
                   </div>
                 </div>
@@ -118,7 +163,7 @@ export default function VSCodeExtensionPost() {
                     <h3 className="font-semibold text-foreground">From VSIX file</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       Download the .vsix file from the GitHub releases page, then install via the command palette:
-                      "Extensions: Install from VSIX..."
+                      &quot;Extensions: Install from VSIX...&quot;
                     </p>
                   </div>
                 </div>
@@ -205,6 +250,14 @@ export default function VSCodeExtensionPost() {
               Right-click on selected code to access the "pastecn: Share Selection" option directly from the
               editor context menu. This appears only when text is selected.
             </p>
+
+            <div className="rounded-lg border border-border overflow-hidden">
+              <img
+                src="/blog/vscode-extension/context-menu.png"
+                alt="pastecn context menu in VS Code"
+                className="w-full"
+              />
+            </div>
           </section>
 
           {/* How It Works */}
