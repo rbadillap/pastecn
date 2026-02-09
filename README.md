@@ -1,6 +1,6 @@
 # pastecn
 
-![hero](app/opengraph-image.jpg)
+![hero](apps/web/app/opengraph-image.jpg)
 
 **pastebin + shadcn = pastecn**
 
