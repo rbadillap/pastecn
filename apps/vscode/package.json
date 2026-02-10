@@ -84,8 +84,8 @@
     "typecheck": "tsc --noEmit",
     "package": "pnpm build && vsce package --no-dependencies",
     "package:pre": "pnpm build && vsce package --pre-release --no-dependencies",
-    "publish:vscode": "vsce publish --no-dependencies",
-    "publish:ovsx": "ovsx publish"
+    "publish:vscode": "vsce publish --no-dependencies --skip-duplicate",
+    "publish:ovsx": "ovsx publish --no-dependencies --skip-duplicate"
   },
   "devDependencies": {
     "@pastecn/typescript-config": "workspace:*",
