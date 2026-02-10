@@ -5,6 +5,7 @@
   "exports": {
     "./snippets": "./src/snippets/index.ts",
     "./snippets/*": "./src/snippets/*.ts",
+    "./schemas": "./src/schemas/index.ts",
     "./validation": "./src/validation.ts",
     "./password": "./src/password.ts"
   },

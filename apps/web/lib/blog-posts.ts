@@ -10,6 +10,14 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "mcp-server",
+    title: "MCP Server: Connect Claude Desktop & Cursor",
+    description: "Native MCP support for pastecn. Connect Claude Desktop, Cursor, and any MCP-compatible client to create and retrieve snippets directly.",
+    date: "2026-02-09",
+    category: "Feature Announcement",
+    image: "/opengraph-image.jpg"
+  },
+  {
     slug: "vscode-extension",
     title: "VS Code Extension",
     description: "Share code snippets directly from VS Code. Select code, press a shortcut, and get a shareable URL.",

@@ -741,6 +741,9 @@ export function RegistryPastebin() {
             <Link href="/use-cases/shadcn-registry-urls" className="text-muted-foreground hover:text-foreground transition-colors">
               Use Case
             </Link>
+            <Link href="/blog/mcp-server" className="text-muted-foreground hover:text-foreground transition-colors">
+              MCP
+            </Link>
             <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
               Blog
             </Link>
