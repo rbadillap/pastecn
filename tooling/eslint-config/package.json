@@ -1,9 +1,11 @@
 {
   "name": "@pastecn/eslint-config",
   "private": true,
-  "files": ["*.js"],
+  "files": [
+    "*.js"
+  ],
   "devDependencies": {
     "eslint": "^9.0.0",
-    "typescript-eslint": "^8.0.0"
+    "typescript-eslint": "^8.58.0"
   }
 }
