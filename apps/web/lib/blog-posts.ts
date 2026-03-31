@@ -10,6 +10,14 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "drag-drop-upload",
+    title: "Drag & Drop Upload",
+    description: "Drag files or entire folders into pastecn to create multi-file snippets instantly. Language, type, and paths are auto-detected.",
+    date: "2026-03-30",
+    category: "Feature Announcement",
+    image: "/opengraph-image.jpg"
+  },
+  {
     slug: "vscode-extension",
     title: "VS Code Extension",
     description: "Share code snippets directly from VS Code. Select code, press a shortcut, and get a shareable URL.",
