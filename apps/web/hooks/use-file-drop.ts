@@ -243,6 +243,7 @@ export function useFileDrop({ onFiles }: UseFileDropOptions) {
     onChange: onInputChange,
     className: "hidden",
     tabIndex: -1,
+    "aria-label": "Upload files",
   }), [onInputChange])
 
   const openFilePicker = useCallback(() => {

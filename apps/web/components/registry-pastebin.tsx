@@ -354,13 +354,13 @@ export function RegistryPastebin() {
   return (
     <div className="relative flex flex-col min-h-screen" {...getRootProps()}>
       {/* Hidden file input for picker */}
-      <input {...getInputProps()} aria-label="Upload files" />
+      <input {...getInputProps()} />
 
       {/* Full-page drag overlay */}
       {isDragging && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm border-2 border-dashed border-primary rounded-md pointer-events-none">
           <div className="text-center">
-            <Upload className="h-12 w-12 mx-auto mb-3 text-primary" aria-hidden="true" />
+            <Upload className="h-12 w-12 mx-auto mb-3 text-primary" />
             <p className="text-lg font-medium text-primary">Drop files or folders here</p>
             <p className="text-sm text-muted-foreground mt-1">.ts .tsx .js .jsx .json .md .css .txt</p>
           </div>
@@ -569,7 +569,7 @@ export function RegistryPastebin() {
                 onClick={openFilePicker}
                 disabled={isUploading}
               >
-                <Upload className="h-4 w-4 mr-1" aria-hidden="true" />
+                <Upload className="h-4 w-4 mr-1" />
                 Upload Files
               </Button>
               <Button
