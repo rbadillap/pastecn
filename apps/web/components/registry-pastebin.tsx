@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronDown, Loader2, Code2, Plus, Lock, RefreshCw, Copy, Check, Clock } from "lucide-react"
+import { ChevronDown, Loader2, Code2, Plus, Lock, RefreshCw, Copy, Check, Clock, Upload } from "lucide-react"
 import { upload } from "@vercel/blob/client"
 import { nanoid } from "nanoid"
 import { track } from "@vercel/analytics/react"
@@ -32,45 +32,13 @@ import {
 import { Kbd } from "@pastecn/ui/components/kbd"
 import { useLocalStorageDraft } from "@/hooks/use-local-storage-draft"
 import { toast } from "@pastecn/ui/hooks/use-toast"
+import { useFileDrop } from "@/hooks/use-file-drop"
+import { languages, registryTypes, type LanguageType, type RegistryType } from "@/lib/registry"
 import { ClearDraftDialog } from "./clear-draft-dialog"
 
-export type RegistryType = "file" | "component" | "hook" | "lib"
+export type { RegistryType, LanguageType }
 
 export type ExpirationOption = '1h' | '24h' | '7d' | '30d' | 'never'
-
-export type LanguageType =
-  | "typescript"
-  | "javascript"
-  | "tsx"
-  | "jsx"
-  | "json"
-  | "markdown"
-  | "css"
-  | "plaintext"
-
-const languages: { value: LanguageType; label: string; extensions: string[] }[] = [
-  { value: "typescript", label: "TypeScript", extensions: [".ts"] },
-  { value: "tsx", label: "TSX", extensions: [".tsx"] },
-  { value: "javascript", label: "JavaScript", extensions: [".js", ".mjs", ".cjs"] },
-  { value: "jsx", label: "JSX", extensions: [".jsx"] },
-  { value: "json", label: "JSON", extensions: [".json"] },
-  { value: "markdown", label: "Markdown", extensions: [".md", ".mdx"] },
-  { value: "css", label: "CSS", extensions: [".css"] },
-  { value: "plaintext", label: "Plain Text", extensions: [".txt"] },
-]
-
-const registryTypes: {
-  value: RegistryType
-  label: string
-  prefix: string
-  placeholder: string
-  registryType: string
-}[] = [
-  { value: "file", label: "File", prefix: "~/", placeholder: "AGENTS.md", registryType: "registry:file" },
-  { value: "component", label: "Component", prefix: "components/", placeholder: "code-preview.tsx", registryType: "registry:component" },
-  { value: "hook", label: "Hook", prefix: "hooks/", placeholder: "use-copy-to-clipboard.ts", registryType: "registry:hook" },
-  { value: "lib", label: "Lib", prefix: "lib/", placeholder: "fetcher.ts", registryType: "registry:lib" },
-]
 
 // ID generation moved to server-side only for security
 
@@ -171,6 +139,22 @@ export function RegistryPastebin() {
       })
     }
   }, [hasDraft])
+
+  // Drag & drop file upload
+  const { isDragging, getRootProps, getInputProps, openFilePicker } = useFileDrop({
+    onFiles: (parsedFiles) => {
+      const newEntries: FileInput[] = parsedFiles.map(f => ({
+        id: nanoid(),
+        ...f,
+      }))
+      setFiles(prev => {
+        // Remove blank files (no code and no filename) before appending
+        const existing = prev.filter(f => f.code.trim() || f.fileName.trim())
+        return [...existing, ...newEntries]
+      })
+      track('files_dropped', { count: parsedFiles.length })
+    },
+  })
 
   // Auto-generate password when protection is enabled
   useEffect(() => {
@@ -368,7 +352,21 @@ export function RegistryPastebin() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="relative flex flex-col min-h-screen" {...getRootProps()}>
+      {/* Hidden file input for picker */}
+      <input {...getInputProps()} aria-label="Upload files" />
+
+      {/* Full-page drag overlay */}
+      {isDragging && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm border-2 border-dashed border-primary rounded-md pointer-events-none">
+          <div className="text-center">
+            <Upload className="h-12 w-12 mx-auto mb-3 text-primary" aria-hidden="true" />
+            <p className="text-lg font-medium text-primary">Drop files or folders here</p>
+            <p className="text-sm text-muted-foreground mt-1">.ts .tsx .js .jsx .json .md .css .txt</p>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="flex-1 container mx-auto px-4 pt-12 md:pt-20 pb-8 flex flex-col">
         <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full">
@@ -501,7 +499,7 @@ export function RegistryPastebin() {
                     <InputGroupTextarea
                       value={file.code}
                       onChange={(e) => updateFile(file.id, { code: e.target.value })}
-                      placeholder="// Paste your code here..."
+                      placeholder="// Paste your code here…"
                       className="flex-1 font-mono text-sm min-h-[200px]"
                       spellCheck={false}
                       disabled={isUploading}
@@ -564,16 +562,27 @@ export function RegistryPastebin() {
                 Clear Draft
               </Button>
             )}
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={addFile}
-              disabled={isUploading}
-              className={`hover:text-muted-foreground ${files.length === 1 && !hasDraft ? "ml-auto" : ""}`}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add File
-            </Button>
+            <div className={`flex items-center gap-2 ${files.length === 1 && !hasDraft ? "ml-auto" : ""}`}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={openFilePicker}
+                disabled={isUploading}
+              >
+                <Upload className="h-4 w-4 mr-1" aria-hidden="true" />
+                Upload Files
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={addFile}
+                disabled={isUploading}
+                className="hover:text-muted-foreground"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add File
+              </Button>
+            </div>
           </div>
 
           {/* Password Protection */}

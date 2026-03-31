@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@pastecn/ui/components/dialog";
-import { LanguageType, RegistryType } from "./registry-pastebin";
+import type { LanguageType, RegistryType } from "@/lib/registry";
 
 interface FileInput {
   id: string;
